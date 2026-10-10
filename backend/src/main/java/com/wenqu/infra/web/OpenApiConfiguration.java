@@ -1,5 +1,6 @@
 package com.wenqu.infra.web;
 
+import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -13,6 +14,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 public class OpenApiConfiguration {
+
+    static {
+        // 枚举输出为独立的 schema，前端每个枚举只生成一个类型
+        ModelResolver.enumsAsRef = true;
+    }
 
     @Bean
     OpenAPI openApi() {

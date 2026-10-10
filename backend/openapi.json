@@ -642,8 +642,7 @@
             "example" : "db"
           },
           "status" : {
-            "type" : "string",
-            "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
+            "$ref" : "#/components/schemas/HealthStatus"
           }
         }
       },
@@ -652,8 +651,7 @@
         "type" : "object",
         "properties" : {
           "role" : {
-            "type" : "string",
-            "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
+            "$ref" : "#/components/schemas/WorkspaceRole"
           },
           "validDays" : {
             "maximum" : 30,
@@ -676,8 +674,7 @@
             "format" : "int64"
           },
           "role" : {
-            "type" : "string",
-            "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
+            "$ref" : "#/components/schemas/WorkspaceRole"
           },
           "token" : {
             "type" : "string",
@@ -685,6 +682,10 @@
           }
         },
         "description" : "业务数据，出错时为 null"
+      },
+      "HealthStatus" : {
+        "type" : "string",
+        "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
       },
       "InvitationPreviewResponse" : {
         "required" : [ "alreadyMember", "expiresAt", "inviterName", "role", "workspaceId", "workspaceName" ],
@@ -701,8 +702,7 @@
             "type" : "string"
           },
           "role" : {
-            "type" : "string",
-            "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
+            "$ref" : "#/components/schemas/WorkspaceRole"
           },
           "workspaceId" : {
             "type" : "integer",
@@ -734,8 +734,7 @@
             "format" : "int64"
           },
           "role" : {
-            "type" : "string",
-            "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
+            "$ref" : "#/components/schemas/WorkspaceRole"
           }
         },
         "description" : "业务数据，出错时为 null"
@@ -769,8 +768,7 @@
             "format" : "date-time"
           },
           "role" : {
-            "type" : "string",
-            "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
+            "$ref" : "#/components/schemas/WorkspaceRole"
           },
           "userId" : {
             "type" : "integer",
@@ -812,8 +810,7 @@
             }
           },
           "status" : {
-            "type" : "string",
-            "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
+            "$ref" : "#/components/schemas/HealthStatus"
           }
         },
         "description" : "业务数据，出错时为 null"
@@ -871,15 +868,18 @@
             "format" : "int64"
           },
           "myRole" : {
-            "type" : "string",
-            "description" : "当前用户在空间中的角色",
-            "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
+            "$ref" : "#/components/schemas/WorkspaceRole"
           },
           "name" : {
             "type" : "string"
           }
         },
         "description" : "业务数据，出错时为 null"
+      },
+      "WorkspaceRole" : {
+        "type" : "string",
+        "description" : "当前用户在空间中的角色",
+        "enum" : [ "VIEWER", "EDITOR", "ADMIN" ]
       }
     },
     "securitySchemes" : {
