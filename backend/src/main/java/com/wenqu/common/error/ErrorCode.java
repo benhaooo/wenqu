@@ -22,7 +22,13 @@ public enum ErrorCode {
     WORKSPACE_NOT_FOUND(12004, HttpStatus.NOT_FOUND, "空间不存在或你不是该空间的成员"),
     INVITATION_NOT_FOUND(12010, HttpStatus.NOT_FOUND, "邀请链接无效"),
     INVITATION_EXPIRED(12011, HttpStatus.GONE, "邀请链接已过期"),
-    INVITATION_REVOKED(12012, HttpStatus.GONE, "邀请链接已被撤销");
+    INVITATION_REVOKED(12012, HttpStatus.GONE, "邀请链接已被撤销"),
+
+    NODE_NOT_FOUND(13001, HttpStatus.NOT_FOUND, "文档或文件夹不存在"),
+    INVALID_PARENT(13002, HttpStatus.BAD_REQUEST, "目标位置必须是当前空间中的文件夹"),
+    MOVE_INTO_DESCENDANT(13003, HttpStatus.BAD_REQUEST, "不能移动到自身或其子文件夹中"),
+    INVALID_SIBLING(13004, HttpStatus.BAD_REQUEST, "排序参照的节点不在目标文件夹中"),
+    TRASH_ITEM_NOT_FOUND(13005, HttpStatus.NOT_FOUND, "回收站中没有该项");
 
     private final int code;
     private final HttpStatus httpStatus;

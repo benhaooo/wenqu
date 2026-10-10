@@ -14,6 +14,9 @@
     "description" : "系统",
     "name" : "system"
   }, {
+    "description" : "目录树、回收站与搜索",
+    "name" : "document"
+  }, {
     "description" : "团队空间、成员与邀请",
     "name" : "workspace"
   }, {
@@ -446,6 +449,295 @@
         "summary" : "空间成员",
         "tags" : [ "workspace" ]
       }
+    },
+    "/api/workspaces/{workspaceId}/nodes" : {
+      "get" : {
+        "operationId" : "listNodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultListNodeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "空间内全部未删除节点（扁平列表）",
+        "tags" : [ "document" ]
+      },
+      "post" : {
+        "operationId" : "createNode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateNodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultNodeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "新建文档或文件夹，排在目标文件夹最后",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/nodes/{nodeId}" : {
+      "delete" : {
+        "operationId" : "deleteNode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultVoid"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "移入回收站，下级节点一并移入",
+        "tags" : [ "document" ]
+      },
+      "patch" : {
+        "operationId" : "renameNode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RenameNodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultNodeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "重命名",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/nodes/{nodeId}/move" : {
+      "post" : {
+        "operationId" : "moveNode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MoveNodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultNodeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "移动到指定文件夹的指定位置",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/search" : {
+      "get" : {
+        "operationId" : "searchNodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultListSearchHitResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "按标题和正文搜索",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/trash" : {
+      "get" : {
+        "operationId" : "listTrash",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultListTrashItemResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "回收站：每次删除的顶层节点",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/trash/{nodeId}/restore" : {
+      "post" : {
+        "operationId" : "restoreNode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultVoid"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "恢复回收站中的节点（同批删除的节点一并恢复）",
+        "tags" : [ "document" ]
+      }
     }
   },
   "components" : {
@@ -526,6 +818,69 @@
           }
         }
       },
+      "ApiResultListNodeResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "description" : "业务数据，出错时为 null",
+            "items" : {
+              "$ref" : "#/components/schemas/NodeResponse"
+            }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultListSearchHitResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "description" : "业务数据，出错时为 null",
+            "items" : {
+              "$ref" : "#/components/schemas/SearchHitResponse"
+            }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultListTrashItemResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "description" : "业务数据，出错时为 null",
+            "items" : {
+              "$ref" : "#/components/schemas/TrashItemResponse"
+            }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "ApiResultListWorkspaceResponse" : {
         "required" : [ "code", "data", "message" ],
         "type" : "object",
@@ -541,6 +896,23 @@
             "items" : {
               "$ref" : "#/components/schemas/WorkspaceResponse"
             }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultNodeResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/NodeResponse"
           },
           "message" : {
             "type" : "string"
@@ -661,6 +1033,26 @@
           }
         }
       },
+      "CreateNodeRequest" : {
+        "required" : [ "parentId", "title", "type" ],
+        "type" : "object",
+        "properties" : {
+          "parentId" : {
+            "type" : "integer",
+            "description" : "null 表示根目录",
+            "format" : "int64",
+            "nullable" : true
+          },
+          "title" : {
+            "maxLength" : 200,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/NodeType"
+          }
+        }
+      },
       "CreatedInvitationResponse" : {
         "required" : [ "expiresAt", "id", "role", "token" ],
         "type" : "object",
@@ -777,6 +1169,57 @@
         },
         "description" : "业务数据，出错时为 null"
       },
+      "MoveNodeRequest" : {
+        "required" : [ "afterNodeId", "parentId" ],
+        "type" : "object",
+        "properties" : {
+          "afterNodeId" : {
+            "type" : "integer",
+            "format" : "int64",
+            "nullable" : true
+          },
+          "parentId" : {
+            "type" : "integer",
+            "format" : "int64",
+            "nullable" : true
+          }
+        }
+      },
+      "NodeResponse" : {
+        "required" : [ "id", "parentId", "position", "title", "type", "updatedAt" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parentId" : {
+            "type" : "integer",
+            "description" : "null 表示位于根目录",
+            "format" : "int64",
+            "nullable" : true
+          },
+          "position" : {
+            "type" : "string",
+            "description" : "同级排序键，按字符串升序排列"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/NodeType"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "NodeType" : {
+        "type" : "string",
+        "enum" : [ "FOLDER", "DOCUMENT" ]
+      },
       "RegisterRequest" : {
         "required" : [ "displayName", "email", "password" ],
         "type" : "object",
@@ -798,6 +1241,38 @@
             "type" : "string"
           }
         }
+      },
+      "RenameNodeRequest" : {
+        "required" : [ "title" ],
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "maxLength" : 200,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        }
+      },
+      "SearchHitResponse" : {
+        "required" : [ "id", "snippet", "title", "type" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "snippet" : {
+            "type" : "string",
+            "description" : "正文中命中位置附近的片段"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/NodeType"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
       },
       "SystemHealthResponse" : {
         "required" : [ "components", "status" ],
@@ -828,6 +1303,40 @@
           },
           "user" : {
             "$ref" : "#/components/schemas/UserResponse"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "TrashItemResponse" : {
+        "required" : [ "deletedAt", "deletedByName", "descendantCount", "id", "purgeAt", "title", "type" ],
+        "type" : "object",
+        "properties" : {
+          "deletedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "deletedByName" : {
+            "type" : "string"
+          },
+          "descendantCount" : {
+            "type" : "integer",
+            "description" : "同批删除的下级节点数量",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "purgeAt" : {
+            "type" : "string",
+            "description" : "彻底删除的时间",
+            "format" : "date-time"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/NodeType"
           }
         },
         "description" : "业务数据，出错时为 null"

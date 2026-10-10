@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { LoginPage, RegisterPage, RequireAuth } from '@/features/auth'
+import { DocumentPage, DocumentSidebar, TrashPage } from '@/features/document'
 import {
   CreateWorkspacePage,
   HomeRedirect,
@@ -13,6 +14,7 @@ import {
 import { ApiError } from '@/shared/api/http'
 import { refreshSession } from '@/shared/api/session'
 import { Toaster } from '@/shared/ui/sonner'
+import { TooltipProvider } from '@/shared/ui/tooltip'
 import { SystemStatusPage } from './SystemStatusPage'
 
 const queryClient = new QueryClient({
@@ -36,10 +38,12 @@ const router = createBrowserRouter([
       { path: '/invite/:token', element: <InvitePage /> },
       {
         path: '/w/:workspaceId',
-        element: <WorkspaceLayout />,
+        element: <WorkspaceLayout sidebar={<DocumentSidebar />} />,
         children: [
           { index: true, element: <WorkspaceOverviewPage /> },
           { path: 'members', element: <MembersPage /> },
+          { path: 'd/:nodeId', element: <DocumentPage /> },
+          { path: 'trash', element: <TrashPage /> },
         ],
       },
     ],
@@ -54,7 +58,9 @@ export function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <TooltipProvider>
+        <RouterProvider router={router} />
+      </TooltipProvider>
       <Toaster />
     </QueryClientProvider>
   )

@@ -81,6 +81,20 @@ public final class TestApi {
         return JsonPath.read(body, "$.data.token");
     }
 
+    /** 新建节点并返回 id；parentId 为 null 表示根目录。 */
+    public static long createNode(
+            MockMvc mockMvc, long workspaceId, LoggedInUser user, Long parentId, String type, String title)
+            throws Exception {
+        String parent = parentId == null ? "null" : parentId.toString();
+        String body = mockMvc.perform(user.authorize(post("/api/workspaces/{id}/nodes", workspaceId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json("{'parentId':%s,'type':'%s','title':'%s'}", parent, type, title)))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return ((Number) JsonPath.read(body, "$.data.id")).longValue();
+    }
+
     /** 用单引号书写 JSON，提高测试可读性。 */
     public static String json(String template, Object... args) {
         return template.formatted(args).replace('\'', '"');
