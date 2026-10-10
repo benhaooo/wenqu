@@ -88,6 +88,15 @@ public class NodeRepository {
                 .execute();
     }
 
+    /** 记录最后修改人与时间（正文保存时调用）。 */
+    public void touch(long nodeId, long userId, Instant now) {
+        dsl.update(NODE)
+                .set(NODE.UPDATED_BY, userId)
+                .set(NODE.UPDATED_AT, now)
+                .where(NODE.ID.eq(nodeId))
+                .execute();
+    }
+
     public void move(long nodeId, Long parentId, String position, long userId, Instant now) {
         dsl.update(NODE)
                 .set(NODE.PARENT_ID, parentId)

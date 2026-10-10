@@ -4,13 +4,16 @@ import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.JsonNode;
 
 @Configuration(proxyBeanMethods = false)
 public class OpenApiConfiguration {
@@ -18,6 +21,8 @@ public class OpenApiConfiguration {
     static {
         // 枚举输出为独立的 schema，前端每个枚举只生成一个类型
         ModelResolver.enumsAsRef = true;
+        // JsonNode 字段表示任意 JSON 对象（如 ProseMirror 文档），而不是 Jackson 类本身的结构
+        SpringDocUtils.getConfig().replaceWithSchema(JsonNode.class, new ObjectSchema());
     }
 
     @Bean

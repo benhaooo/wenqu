@@ -9,7 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 
 /** 集成测试中通过真实接口准备数据。 */
 public final class TestApi {
@@ -20,7 +20,7 @@ public final class TestApi {
 
     public record LoggedInUser(long id, String email, String accessToken, Cookie refreshCookie) {
 
-        public MockHttpServletRequestBuilder authorize(MockHttpServletRequestBuilder request) {
+        public <B extends AbstractMockHttpServletRequestBuilder<B>> B authorize(B request) {
             return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
         }
     }

@@ -5,7 +5,8 @@
 - 空间内的目录树：文件夹与文档的新建、重命名、排序、移动。
 - 回收站：删除进入回收站，保留 30 天，可恢复，到期彻底删除。
 - 按标题和正文搜索。
-- 文档内容（ProseMirror JSON 与纯文本）的存储。
+- 文档正文：ProseMirror JSON 的保存（服务端净化）与纯文本提取，乐观并发控制。
+- 文档中的图片：上传到对象存储，通过有时效的签名链接访问。
 
 ## 数据模型
 
@@ -13,6 +14,7 @@
 erDiagram
     node ||--o{ node : "parent_id"
     node ||--o| content : has
+    node ||--o{ image : has
     node {
         bigint id PK
         bigint workspace_id
@@ -27,7 +29,15 @@ erDiagram
     content {
         bigint node_id PK
         jsonb content_json "ProseMirror 文档"
-        text plain_text "搜索与 AI 索引"
+        text plain_text "搜索与 AI 索引，由服务端提取"
+        int version "乐观并发控制"
+    }
+    image {
+        uuid id PK
+        bigint workspace_id
+        bigint node_id FK
+        text object_key "workspaces/{w}/images/{id}.{ext}"
+        text content_type "按内容检测"
     }
 ```
 
@@ -41,6 +51,7 @@ erDiagram
 | `idx_node_parent_id` | 查询同级节点、外键 |
 | `idx_node_deleted_batch_id`（部分索引：已删除） | 回收站列表、恢复、清理 |
 | `idx_node_title_trgm`、`idx_content_plain_text_trgm`（GIN trigram） | `ILIKE '%关键词%'` 模糊搜索 |
+| `idx_image_node_id` | 外键；清理回收站时查找图片对象 |
 
 trigram 索引对少于 3 个字符的关键词无法缩小范围，此时退化为扫描该空间的节点；团队规模下可以接受。
 
@@ -60,6 +71,10 @@ trigram 索引对少于 3 个字符的关键词无法缩小范围，此时退化
 | GET | `/trash` | 回收站：每次删除的顶层节点、下级数量、彻底删除时间 | VIEWER |
 | POST | `/trash/{nodeId}/restore` | 恢复整个删除批次 | EDITOR |
 | GET | `/search?q=` | 按标题和正文搜索，标题命中优先，最多 20 条 | VIEWER |
+| GET | `/documents/{nodeId}` | 标题、正文 JSON、版本 | VIEWER |
+| PUT | `/documents/{nodeId}/content` | 保存正文（`content`、`baseVersion`），版本不一致返回 409 | EDITOR |
+| POST | `/documents/{nodeId}/images` | 上传图片（multipart `file`），返回 `imageId` | EDITOR |
+| GET | `/images/{imageId}/url` | 图片签名链接，1 小时有效 | VIEWER |
 
 错误码：
 
@@ -70,6 +85,11 @@ trigram 索引对少于 3 个字符的关键词无法缩小范围，此时退化
 | 13003 | 400 | 把节点移动到自身或其子孙中 |
 | 13004 | 400 | `afterNodeId` 不是目标文件夹中的节点 |
 | 13005 | 404 | 回收站中没有该项 |
+| 13006 | 409 | 保存正文时版本已变化（其他标签页或成员已保存） |
+| 13007 | 400 | 正文结构不合法（未知节点或格式类型） |
+| 13008 | 413 | 正文 JSON 超过 2MB |
+| 13009 | 415 | 图片类型不是 PNG、JPEG、GIF、WebP（按内容检测） |
+| 13011 | 404 | 图片不存在或不属于该空间 |
 
 ### 模块 API
 
@@ -106,12 +126,43 @@ flowchart LR
 - 先单独删除的子节点属于更早的批次，恢复父文件夹时不会一起恢复。
 - `TrashPurgeJob` 每天 03:00 彻底删除 `deleted_at` 早于 30 天前的节点。
 
+### 正文保存
+
+```mermaid
+sequenceDiagram
+    participant E as 编辑器
+    participant S as DocumentContentService
+    participant D as content
+    E->>S: PUT content（JSON, baseVersion=n）
+    S->>S: 校验节点与 mark 白名单、净化链接与图片、提取纯文本
+    S->>D: update ... set version = n+1 where version = n
+    alt 更新 0 行
+        S-->>E: 409 13006
+    else
+        S-->>E: version = n+1
+    end
+```
+
+服务端净化规则（`ProseMirrorContent`），与前端编辑器 schema 一致：
+
+- 节点类型白名单：段落、一至三级标题、有序/无序/任务列表、代码块、引用、提示框、分割线、图片、表格；mark 白名单：粗体、斜体、删除线、行内代码、下划线、链接。出现其他类型返回 13007。
+- 每种节点只保留白名单内的属性（如标题只保留 `level` 并限制在 1～3），丢弃 `style`、事件属性等。
+- 链接只允许 `http:`、`https:`、`mailto:` 和站内路径，其他链接（如 `javascript:`）去掉链接保留文字。
+- 图片节点只保存 `imageId`，且必须是本空间上传过的图片，否则删除该节点。
+- 纯文本由服务端从净化后的 JSON 提取，块级节点之间换行，不信任前端提交的文本。
+
+### 图片
+
+- 上传时用 Apache Tika 按文件内容检测类型，不信任扩展名与请求头；限制 10MB。
+- 对象存储中的对象不公开。正文只存 `imageId`，前端显示时调用 `/images/{imageId}/url` 获取签名链接（`<img>` 请求无法携带 Access Token，因此不使用需要鉴权的固定地址）。
+- 清理回收站时，先在事务中删除节点（图片记录随之级联删除），提交后再删除对象存储中的文件。
+
 ### 前端
 
 | 路由 | 页面 |
 |---|---|
 | `/w/:workspaceId`（左侧栏） | 目录树、搜索、新建、回收站入口 |
-| `/w/:workspaceId/d/:nodeId` | 文档页（路径与标题） |
+| `/w/:workspaceId/d/:nodeId` | 文档页：路径、标题、保存状态、编辑器 |
 | `/w/:workspaceId/trash` | 回收站 |
 
 - 目录树使用 `@headless-tree/react` 与 `@tanstack/react-virtual`：只渲染可见行。生产构建下 500 个节点全部展开时，每次展开平均 4.8ms（P95 10.2ms），无超过 50ms 的长任务。
@@ -119,10 +170,32 @@ flowchart LR
 - 搜索对话框快捷键 Ctrl/Cmd + P，输入停顿 250ms 后请求。
 - 目录树由 `app` 层通过插槽放入 workspace 的页面框架，workspace 前端模块不依赖 document。
 
+#### 编辑器
+
+- 基于 Tiptap 3：一至三级标题、有序/无序/任务列表、代码块（lowlight 语法高亮）、表格、图片、引用、提示框；StarterKit 自带 Markdown 快捷输入（`## `、`- `、`[ ] `、`> `、三个反引号）。
+- 输入 `/` 弹出插入菜单，支持中文标题、英文与拼音首字母过滤，上下键选择、回车确认。
+- 粘贴或拖入图片文件时自动上传并插入；粘贴 HTML 由编辑器 schema 解析，`script`、`iframe`、事件属性、外部图片和不安全链接被丢弃（`sanitize.test.ts`）。
+- 只读成员的编辑器不可编辑，不触发保存。
+
+#### 自动保存（`AutoSaver`）
+
+| 场景 | 行为 |
+|---|---|
+| 停止输入 1.5 秒 | 保存，状态「保存中」→「已保存」 |
+| 保存期间继续输入 | 当前请求完成后基于新版本再保存 |
+| 网络失败 | 状态「保存失败」，按 2、4、8、16、30 秒退避重试；浏览器 `online` 事件时立即重试 |
+| 版本冲突 | 停止重试，提示刷新获取最新内容 |
+| 切换到其他页面 | 未保存内容以快照形式继续在后台保存，直到成功 |
+| 刷新或关闭页面 | `pagehide` 时用 `fetch keepalive` 提交未保存内容；超过 keepalive 大小限制时由 `beforeunload` 提示 |
+
+文档页加载正文后不再自动重新获取（`staleTime: Infinity`），避免覆盖本地编辑；空间信息的后台刷新失败时保留已有数据，不卸载编辑器。
+
 ## 依赖
 
 | 依赖 | 用途 |
 |---|---|
 | workspace `@RequireWorkspaceRole` | 接口访问控制 |
 | auth `UserApi` | 回收站中删除人的昵称 |
+| infra `ObjectStorage` | 图片存储与签名链接 |
+| Apache Tika（tika-core） | 图片真实类型检测 |
 | PostgreSQL `pg_trgm` 扩展 | 模糊搜索索引 |

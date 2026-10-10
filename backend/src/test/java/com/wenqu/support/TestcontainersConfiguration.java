@@ -51,6 +51,7 @@ public class TestcontainersConfiguration {
     DynamicPropertyRegistrar storageProperties(MinIOContainer minio) {
         return registry -> {
             registry.add("wenqu.storage.endpoint", minio::getS3URL);
+            registry.add("wenqu.storage.public-endpoint", minio::getS3URL);
             registry.add("wenqu.storage.access-key", minio::getUserName);
             registry.add("wenqu.storage.secret-key", minio::getPassword);
         };

@@ -49,18 +49,21 @@ export function WorkspaceLayout({ sidebar }: { sidebar: ReactNode }) {
       <div className="flex min-h-0 flex-1">
         {workspace && sidebar}
         <main className="min-w-0 flex-1 overflow-auto px-6 py-8">
-          {error ? (
-            <Alert variant="destructive" className="mx-auto max-w-lg">
-              <AlertTitle>无法打开空间</AlertTitle>
-              <AlertDescription>
-                <p>{error.message}</p>
-                <Button asChild variant="link" className="h-auto p-0">
-                  <Link to="/">返回我的空间</Link>
-                </Button>
-              </AlertDescription>
-            </Alert>
+          {/* 已加载过空间时，后台刷新失败继续使用已有数据，不打断正在进行的编辑 */}
+          {workspace ? (
+            <Outlet />
           ) : (
-            workspace && <Outlet />
+            error && (
+              <Alert variant="destructive" className="mx-auto max-w-lg">
+                <AlertTitle>无法打开空间</AlertTitle>
+                <AlertDescription>
+                  <p>{error.message}</p>
+                  <Button asChild variant="link" className="h-auto p-0">
+                    <Link to="/">返回我的空间</Link>
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )
           )}
         </main>
       </div>

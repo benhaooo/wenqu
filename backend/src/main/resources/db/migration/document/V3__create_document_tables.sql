@@ -39,9 +39,27 @@ create table document.content
     content_json jsonb       not null default '{"type": "doc", "content": []}',
     -- 纯文本，用于搜索和 AI 索引
     plain_text   text        not null default '',
+    -- 乐观并发控制：保存时必须基于最新版本
+    version      integer     not null default 0,
     updated_at   timestamptz not null default now(),
     constraint fk_content_node foreign key (node_id) references document.node (id) on delete cascade
 );
 
 -- 正文模糊搜索
 create index idx_content_plain_text_trgm on document.content using gin (plain_text public.gin_trgm_ops);
+
+create table document.image
+(
+    id           uuid primary key,
+    workspace_id bigint      not null,
+    node_id      bigint      not null,
+    object_key   text        not null,
+    content_type text        not null,
+    size_bytes   bigint      not null,
+    created_by   bigint      not null,
+    created_at   timestamptz not null default now(),
+    constraint fk_image_node foreign key (node_id) references document.node (id) on delete cascade
+);
+
+-- 外键列；清理回收站时查找待删除文档的图片
+create index idx_image_node_id on document.image (node_id);

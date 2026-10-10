@@ -322,6 +322,176 @@
         "tags" : [ "workspace" ]
       }
     },
+    "/api/workspaces/{workspaceId}/documents/{nodeId}" : {
+      "get" : {
+        "operationId" : "getDocument",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultDocumentResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "文档标题与正文",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/documents/{nodeId}/content" : {
+      "put" : {
+        "operationId" : "saveDocumentContent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SaveContentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultSavedContentResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "基于 baseVersion 保存正文，版本不一致返回 409",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/documents/{nodeId}/images" : {
+      "post" : {
+        "operationId" : "uploadImage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "file" ],
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultImageResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "上传文档中的图片（PNG、JPEG、GIF、WebP，不超过 10MB）",
+        "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/images/{imageId}/url" : {
+      "get" : {
+        "operationId" : "getImageUrl",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "imageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultImageUrlResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "图片的签名访问链接（1 小时有效）",
+        "tags" : [ "document" ]
+      }
+    },
     "/api/workspaces/{workspaceId}/invitations" : {
       "get" : {
         "operationId" : "listInvitations",
@@ -759,6 +929,57 @@
           }
         }
       },
+      "ApiResultDocumentResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/DocumentResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultImageResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ImageResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultImageUrlResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ImageUrlResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "ApiResultInvitationPreviewResponse" : {
         "required" : [ "code", "data", "message" ],
         "type" : "object",
@@ -913,6 +1134,23 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/NodeResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultSavedContentResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/SavedContentResponse"
           },
           "message" : {
             "type" : "string"
@@ -1075,9 +1313,56 @@
         },
         "description" : "业务数据，出错时为 null"
       },
+      "DocumentResponse" : {
+        "required" : [ "content", "id", "title", "updatedAt", "version" ],
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "object"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "description" : "保存时作为 baseVersion",
+            "format" : "int32"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
       "HealthStatus" : {
         "type" : "string",
         "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
+      },
+      "ImageResponse" : {
+        "required" : [ "imageId" ],
+        "type" : "object",
+        "properties" : {
+          "imageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "ImageUrlResponse" : {
+        "required" : [ "url" ],
+        "type" : "object",
+        "properties" : {
+          "url" : {
+            "type" : "string"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
       },
       "InvitationPreviewResponse" : {
         "required" : [ "alreadyMember", "expiresAt", "inviterName", "role", "workspaceId", "workspaceName" ],
@@ -1252,6 +1537,35 @@
             "type" : "string"
           }
         }
+      },
+      "SaveContentRequest" : {
+        "required" : [ "baseVersion", "content" ],
+        "type" : "object",
+        "properties" : {
+          "baseVersion" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "content" : {
+            "type" : "object"
+          }
+        }
+      },
+      "SavedContentResponse" : {
+        "required" : [ "updatedAt", "version" ],
+        "type" : "object",
+        "properties" : {
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
       },
       "SearchHitResponse" : {
         "required" : [ "id", "snippet", "title", "type" ],

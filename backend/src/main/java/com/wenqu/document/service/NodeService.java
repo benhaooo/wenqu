@@ -7,10 +7,12 @@ import com.wenqu.common.error.ErrorCode;
 import com.wenqu.document.domain.FractionalIndex;
 import com.wenqu.document.domain.Node;
 import com.wenqu.document.domain.NodeType;
+import com.wenqu.document.domain.PurgedTrash;
 import com.wenqu.document.domain.SearchHit;
 import com.wenqu.document.domain.Trash;
 import com.wenqu.document.domain.TrashEntry;
 import com.wenqu.document.domain.TrashItem;
+import com.wenqu.document.repository.ImageRepository;
 import com.wenqu.document.repository.NodeRepository;
 import java.time.Clock;
 import java.time.Instant;
@@ -32,11 +34,13 @@ public class NodeService {
     private static final int SEARCH_LIMIT = 20;
 
     private final NodeRepository nodeRepository;
+    private final ImageRepository imageRepository;
     private final UserApi userApi;
     private final Clock clock;
 
-    public NodeService(NodeRepository nodeRepository, UserApi userApi, Clock clock) {
+    public NodeService(NodeRepository nodeRepository, ImageRepository imageRepository, UserApi userApi, Clock clock) {
         this.nodeRepository = nodeRepository;
+        this.imageRepository = imageRepository;
         this.userApi = userApi;
         this.clock = clock;
     }
@@ -135,10 +139,15 @@ public class NodeService {
         nodeRepository.restoreBatch(batchId, userId, now);
     }
 
-    /** 彻底删除超过保留期的回收站内容，返回删除的节点数。 */
+    /**
+     * 彻底删除超过保留期的回收站内容。返回被删除文档的图片对象，由调用方在事务提交后从对象存储删除。
+     */
     @Transactional
-    public int purgeExpiredTrash() {
-        return nodeRepository.purgeDeletedBefore(clock.instant().minus(Trash.RETENTION));
+    public PurgedTrash purgeExpiredTrash() {
+        Instant cutoff = clock.instant().minus(Trash.RETENTION);
+        List<String> imageKeys = imageRepository.findObjectKeysOfNodesDeletedBefore(cutoff);
+        int nodes = nodeRepository.purgeDeletedBefore(cutoff);
+        return new PurgedTrash(nodes, imageKeys);
     }
 
     public List<SearchHit> search(long workspaceId, String keyword) {

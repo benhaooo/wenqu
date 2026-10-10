@@ -7,6 +7,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  servlet:
+    multipart:
+      # 单文件上限 20MB（导入文件），图片另有更小的限制
+      max-file-size: 20MB
+      max-request-size: 21MB
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:wenqu}
     username: ${DB_USERNAME}
@@ -37,6 +42,8 @@ wenqu:
     cookie-secure: ${AUTH_COOKIE_SECURE:false}
   storage:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    # 浏览器访问签名链接使用的地址，默认与 endpoint 相同
+    public-endpoint: ${MINIO_PUBLIC_ENDPOINT:${MINIO_ENDPOINT:http://localhost:9000}}
     access-key: ${MINIO_ACCESS_KEY}
     secret-key: ${MINIO_SECRET_KEY}
     bucket: ${MINIO_BUCKET:wenqu}

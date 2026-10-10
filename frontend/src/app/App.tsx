@@ -11,7 +11,7 @@ import {
   WorkspaceLayout,
   WorkspaceOverviewPage,
 } from '@/features/workspace'
-import { ApiError } from '@/shared/api/http'
+import { isNetworkError } from '@/shared/api/http'
 import { refreshSession } from '@/shared/api/session'
 import { Toaster } from '@/shared/ui/sonner'
 import { TooltipProvider } from '@/shared/ui/tooltip'
@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // 业务错误（权限、不存在等）重试没有意义，只重试网络类错误
-      retry: (failureCount, error) => !(error instanceof ApiError) && failureCount < 2,
+      retry: (failureCount, error) => isNetworkError(error) && failureCount < 2,
     },
   },
 })
