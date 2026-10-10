@@ -11,7 +11,7 @@ public class TestcontainersConfiguration {
 
     /** 与 docker-compose.yml 使用同一镜像。 */
     static final DockerImageName POSTGRES_IMAGE =
-            DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres");
+            DockerImageName.parse("pgvector/pgvector:pg18").asCompatibleSubstituteFor("postgres");
 
     @Bean
     @ServiceConnection

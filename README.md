@@ -9,7 +9,7 @@
 ```mermaid
 flowchart LR
     Browser[浏览器<br/>React 19] -->|/api| Backend[后端<br/>Spring Boot 4]
-    Backend --> PG[(PostgreSQL 16<br/>+ pgvector)]
+    Backend --> PG[(PostgreSQL 18<br/>+ pgvector)]
     Backend --> Redis[(Redis)]
     Backend <--> MQ[[RabbitMQ]]
     Backend --> MinIO[(MinIO)]

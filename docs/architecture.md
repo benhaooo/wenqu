@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
     Browser[浏览器<br/>React SPA] -->|/api| Backend[后端<br/>Spring Boot]
-    Backend --> PG[(PostgreSQL 16<br/>+ pgvector)]
+    Backend --> PG[(PostgreSQL 18<br/>+ pgvector)]
     Backend --> Redis[(Redis)]
     Backend <--> MQ[[RabbitMQ]]
     Backend --> MinIO[(MinIO)]
@@ -29,13 +29,14 @@ flowchart LR
 | 层      | 选型                                                                                                 |
 | ------- | ---------------------------------------------------------------------------------------------------- |
 | 后端    | Java 21、Spring Boot 4.1、Spring Security、jOOQ 3.21、Flyway、springdoc-openapi 3                    |
+| 数据库  | PostgreSQL 18 + pgvector |
 | AI 接入 | Spring AI 2.0                                                                                        |
 | 前端    | React 19、TypeScript 6、Vite 8、TanStack Query 5、Zustand 5、React Router、Tailwind CSS 4、shadcn/ui |
 | 编辑器  | Tiptap 3                                                                                             |
 | 测试    | JUnit 5、ArchUnit、Testcontainers 2；Vitest、Testing Library                                         |
 | 构建    | Maven（`mvnw`）；pnpm workspace                                                                    |
 
-版本选择见 [0007](_decisions/0007-采用SpringBoot4与React19基线.md)，持久层选择见 [0003](_decisions/0003-持久层使用jOOQ.md)。
+版本选择见 [0007](_decisions/0007-采用SpringBoot4与React19基线.md)、[0008](_decisions/0008-数据库升级到PostgreSQL18.md)，持久层选择见 [0003](_decisions/0003-持久层使用jOOQ.md)。
 
 ## 后端模块
 
