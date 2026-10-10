@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: wenqu
+  config:
+    # 本地开发读取根目录 .env；部署环境直接注入环境变量
+    import: optional:file:../.env[.properties]
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:wenqu}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    default-schema: public
+    schemas: public,auth,workspace,document,ingestion,retrieval,chat,usage,infra
+    create-schemas: true
+    locations: classpath:db/migration
+  jooq:
+    sql-dialect: postgres
+
+server:
+  port: ${BACKEND_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: false
+  # 健康检查只反映外部依赖的连接状态
+  health:
+    diskspace:
+      enabled: false
+    ping:
+      enabled: false
+    ssl:
+      enabled: false
+
+springdoc:
+  api-docs:
+    # swagger-core 以 3.1 输出泛型字段（ApiResult.data）时会附加 "type": "null"，导致生成的前端类型错误
+    version: openapi_3_0
+  default-produces-media-type: application/json
+  writer-with-order-by-keys: true
+  writer-with-default-pretty-printer: true

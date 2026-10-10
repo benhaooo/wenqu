@@ -1,0 +1,87 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "问渠 API",
+    "version" : "v1"
+  },
+  "servers" : [ {
+    "url" : "/"
+  } ],
+  "tags" : [ {
+    "description" : "系统",
+    "name" : "system"
+  } ],
+  "paths" : {
+    "/api/system/health" : {
+      "get" : {
+        "operationId" : "getSystemHealth",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultSystemHealthResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "系统及依赖组件的连接状态",
+        "tags" : [ "system" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "ApiResultSystemHealthResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/SystemHealthResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ComponentResponse" : {
+        "required" : [ "name", "status" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "example" : "db"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
+          }
+        }
+      },
+      "SystemHealthResponse" : {
+        "required" : [ "components", "status" ],
+        "type" : "object",
+        "properties" : {
+          "components" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ComponentResponse"
+            }
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      }
+    }
+  }
+}
