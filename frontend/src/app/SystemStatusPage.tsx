@@ -1,7 +1,7 @@
 import { useGetSystemHealth } from '@/shared/api/generated/system/system'
 import { cn } from '@/shared/lib/cn'
 
-export function HomePage() {
+export function SystemStatusPage() {
   const { data, isPending, isError } = useGetSystemHealth({
     query: { select: (result) => result.data },
   })

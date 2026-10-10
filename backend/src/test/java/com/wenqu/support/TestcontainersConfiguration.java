@@ -3,6 +3,7 @@ package com.wenqu.support;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MinIOContainer;
@@ -13,6 +14,12 @@ import org.testcontainers.utility.DockerImageName;
 /** 集成测试依赖，镜像与 docker-compose.yml 保持一致。 */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
+
+    @Bean
+    @Primary
+    MutableClock mutableClock() {
+        return new MutableClock();
+    }
 
     @Bean
     @ServiceConnection

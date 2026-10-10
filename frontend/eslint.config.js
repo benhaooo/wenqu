@@ -62,5 +62,10 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // shadcn/ui 组件同时导出组件与样式变体
+    files: ['src/shared/ui/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
   prettier,
 ])

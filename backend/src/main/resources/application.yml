@@ -30,6 +30,11 @@ spring:
     password: ${RABBITMQ_PASSWORD}
 
 wenqu:
+  auth:
+    jwt-secret: ${JWT_SECRET}
+    access-token-ttl: ${ACCESS_TOKEN_TTL:PT2H}
+    refresh-token-ttl: ${REFRESH_TOKEN_TTL:P7D}
+    cookie-secure: ${AUTH_COOKIE_SECURE:false}
   storage:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY}
