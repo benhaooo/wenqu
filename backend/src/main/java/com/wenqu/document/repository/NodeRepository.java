@@ -212,9 +212,36 @@ public class NodeRepository {
                 .execute();
     }
 
-    /** 彻底删除在 cutoff 之前进入回收站的节点（正文与子节点由外键级联删除），返回删除的节点数。 */
-    public int purgeDeletedBefore(Instant cutoff) {
-        return dsl.deleteFrom(NODE).where(NODE.DELETED_AT.lt(cutoff)).execute();
+    /**
+     * 彻底删除在 cutoff 之前进入回收站的节点（正文由外键级联删除），返回删除的节点。
+     *
+     * <p>回收站中节点的子孙一定与它同批或更早删除，因此都满足条件，不会只靠级联删除而遗漏在返回结果之外。
+     */
+    public List<Node> purgeDeletedBefore(Instant cutoff) {
+        return dsl.deleteFrom(NODE)
+                .where(NODE.DELETED_AT.lt(cutoff))
+                .returning()
+                .fetch(NodeRepository::toNode);
+    }
+
+    public List<Long> findActiveDocumentIds(long workspaceId) {
+        return dsl.select(NODE.ID)
+                .from(NODE)
+                .where(NODE.WORKSPACE_ID.eq(workspaceId))
+                .and(NODE.DELETED_AT.isNull())
+                .and(NODE.TYPE.eq(NodeType.DOCUMENT.name()))
+                .fetch(NODE.ID);
+    }
+
+    /** 文件夹及其子孙中未删除的文档。 */
+    public List<Long> findActiveDocumentIdsInSubtree(long folderId) {
+        var subtree = activeSubtree(folderId);
+        return dsl.withRecursive(subtree)
+                .select(NODE.ID)
+                .from(NODE)
+                .where(NODE.ID.in(select(subtree.field("id", Long.class)).from(subtree)))
+                .and(NODE.TYPE.eq(NodeType.DOCUMENT.name()))
+                .fetch(NODE.ID);
     }
 
     /** 标题或正文包含关键词的未删除文档与文件夹；标题命中的排在前面。 */

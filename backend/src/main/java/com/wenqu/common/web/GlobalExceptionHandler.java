@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -72,6 +73,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResult<Void>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
         return respond(ErrorCode.METHOD_NOT_ALLOWED, ErrorCode.METHOD_NOT_ALLOWED.defaultMessage());
+    }
+
+    /** 客户端断开连接（如停止生成时中止流式请求）：响应已无法写出，不记录为错误。 */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleClientDisconnected(AsyncRequestNotUsableException e) {
+        log.debug("Client disconnected: {}", e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

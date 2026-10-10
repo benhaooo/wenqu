@@ -4,6 +4,7 @@ import { TableKit } from '@tiptap/extension-table'
 import { Placeholder } from '@tiptap/extensions'
 import StarterKit from '@tiptap/starter-kit'
 import { common, createLowlight } from 'lowlight'
+import { BlockHighlight } from './BlockHighlight'
 import { Callout } from './Callout'
 import { ImageUpload, type ImageUploadOptions } from './ImageUpload'
 import { SlashCommand } from './SlashCommand'
@@ -43,6 +44,7 @@ export function createExtensions(options: {
     WorkspaceImage.configure({ workspaceId: options.workspaceId }),
     ImageUpload.configure({ upload: options.upload }),
     SlashCommand,
+    BlockHighlight,
     Placeholder.configure({ placeholder: '输入正文，或输入 / 插入标题、列表、代码块等' }),
   ]
 }

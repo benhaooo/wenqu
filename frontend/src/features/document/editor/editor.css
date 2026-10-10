@@ -190,3 +190,11 @@
 .ProseMirror .hljs-function {
   color: #6b4c9a;
 }
+
+/* AI 回答引用跳转到原文时高亮的段落 */
+.ProseMirror .block-highlight {
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--cite) 70%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cite) 70%, transparent);
+  transition: background 0.3s;
+}

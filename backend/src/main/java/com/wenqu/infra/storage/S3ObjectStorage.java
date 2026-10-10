@@ -3,9 +3,11 @@ package com.wenqu.infra.storage;
 import com.wenqu.infra.storage.api.ObjectStorage;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.http.ContentDisposition;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -36,10 +38,28 @@ class S3ObjectStorage implements ObjectStorage {
     }
 
     @Override
+    public InputStream get(String key) {
+        return s3Client.getObject(request -> request.bucket(bucket).key(key));
+    }
+
+    @Override
     public URI signedUrl(String key, Duration ttl) {
         return URI.create(presigner
                 .presignGetObject(request -> request.signatureDuration(ttl)
                         .getObjectRequest(get -> get.bucket(bucket).key(key)))
+                .url()
+                .toString());
+    }
+
+    @Override
+    public URI signedDownloadUrl(String key, Duration ttl, String fileName) {
+        String disposition = ContentDisposition.attachment()
+                .filename(fileName, StandardCharsets.UTF_8)
+                .build()
+                .toString();
+        return URI.create(presigner
+                .presignGetObject(request -> request.signatureDuration(ttl)
+                        .getObjectRequest(get -> get.bucket(bucket).key(key).responseContentDisposition(disposition)))
                 .url()
                 .toString());
     }

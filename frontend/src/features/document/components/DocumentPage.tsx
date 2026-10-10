@@ -1,7 +1,7 @@
 import { EditorContent } from '@tiptap/react'
 import { MoreHorizontalIcon, Trash2Icon } from 'lucide-react'
-import { Fragment, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useGetDocument } from '@/shared/api/generated/document/document'
 import type { DocumentResponse } from '@/shared/api/generated/model'
 import { relativeTime } from '@/shared/lib/relativeTime'
@@ -13,14 +13,23 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { Skeleton } from '@/shared/ui/skeleton'
+import { parseBlockRange } from '../editor/extensions/BlockHighlight'
 import { useDocumentEditor } from '../editor/useDocumentEditor'
 import { useNodeIndex } from '../hooks/useNodeIndex'
 import { useNodeMutations } from '../hooks/useNodeMutations'
-import { useWorkspaceAccess } from '../hooks/useWorkspaceAccess'
+import { useWorkspaceAccess } from '@/shared/api/useWorkspaceAccess'
 import { pathTo } from '../tree'
 import { SaveStatusBadge } from './SaveStatusBadge'
 
-export function DocumentPage() {
+/**
+ * 文档页。顶栏右侧的附加操作（问 AI、下载原文件）属于其他模块，由应用层通过 headerActions 传入。
+ * 链接带 blocks=3-5 时高亮对应段落（AI 回答引用跳转）。
+ */
+export function DocumentPage({
+  headerActions,
+}: {
+  headerActions?: (documentId: number) => ReactNode
+}) {
   const { workspaceId, canEdit } = useWorkspaceAccess()
   const nodeId = Number(useParams().nodeId)
   const { data: document, error } = useGetDocument(workspaceId, nodeId, {
@@ -39,7 +48,13 @@ export function DocumentPage() {
     )
   }
   return (
-    <DocumentView key={nodeId} workspaceId={workspaceId} document={document} canEdit={canEdit} />
+    <DocumentView
+      key={nodeId}
+      workspaceId={workspaceId}
+      document={document}
+      canEdit={canEdit}
+      headerActions={headerActions?.(nodeId)}
+    />
   )
 }
 
@@ -47,10 +62,12 @@ function DocumentView({
   workspaceId,
   document,
   canEdit,
+  headerActions,
 }: {
   workspaceId: number
   document: DocumentResponse
   canEdit: boolean
+  headerActions: ReactNode
 }) {
   const navigate = useNavigate()
   const { index } = useNodeIndex(workspaceId)
@@ -63,6 +80,16 @@ function DocumentView({
     version: document.version,
     editable: canEdit,
   })
+  const highlight = parseBlockRange(useSearchParams()[0].get('blocks'))
+  const highlightFrom = highlight?.from
+  const highlightTo = highlight?.to
+
+  useEffect(() => {
+    if (highlightFrom === undefined || highlightTo === undefined) return
+    editor.commands.highlightBlocks(highlightFrom, highlightTo)
+    const first = editor.view.dom.children.item(highlightFrom)
+    first?.scrollIntoView({ block: 'center' })
+  }, [editor, highlightFrom, highlightTo])
 
   return (
     <div className="flex min-h-full flex-col">
@@ -84,6 +111,7 @@ function DocumentView({
             </Fragment>
           ))}
         </nav>
+        {headerActions}
         {canEdit ? (
           <SaveStatusBadge status={status} onRetry={retry} />
         ) : (

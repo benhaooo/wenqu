@@ -12,7 +12,7 @@ import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 
 /**
  * 空间页面框架：左侧栏 + 主内容。侧栏中的搜索、导航项和目录树由应用层通过插槽传入
- * （它们属于 document 模块，workspace 模块不依赖 document）。
+ * （它们属于 document、chat 等模块，workspace 模块不依赖它们）。
  */
 export function WorkspaceLayout({
   search,
@@ -40,10 +40,10 @@ export function WorkspaceLayout({
           <>
             {search}
             <div className="flex flex-col gap-0.5">
+              {navItems}
               <SidebarLink to={`/w/${String(workspace.id)}/settings`} icon={UsersIcon}>
                 成员与设置
               </SidebarLink>
-              {navItems}
             </div>
             <div className="flex min-h-0 flex-1 flex-col max-md:max-h-80">{tree}</div>
           </>

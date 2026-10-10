@@ -39,6 +39,18 @@ public class ContentRepository {
                         record.get(NODE.UPDATED_BY)));
     }
 
+    /** 不校验版本直接替换正文，返回新版本。 */
+    public int replace(long nodeId, String contentJson, String plainText, Instant now) {
+        return dsl.update(CONTENT)
+                .set(CONTENT.CONTENT_JSON, JSONB.valueOf(contentJson))
+                .set(CONTENT.PLAIN_TEXT, plainText)
+                .set(CONTENT.VERSION, CONTENT.VERSION.plus(1))
+                .set(CONTENT.UPDATED_AT, now)
+                .where(CONTENT.NODE_ID.eq(nodeId))
+                .returning(CONTENT.VERSION)
+                .fetchSingle(CONTENT.VERSION);
+    }
+
     /** 仅当当前版本等于 baseVersion 时保存，返回是否保存成功。 */
     public boolean update(long nodeId, String contentJson, String plainText, int baseVersion, Instant now) {
         return dsl.update(CONTENT)

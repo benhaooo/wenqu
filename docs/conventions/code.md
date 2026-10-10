@@ -16,7 +16,7 @@
 |---|---|---|
 | `api` | `XxxApi` 接口、跨模块 DTO（`XxxDto` 或语义化 record）、领域事件 `XxxEvent` | 只依赖 `common`、JDK、校验与 OpenAPI 注解；不引用本模块其他包 |
 | `controller` | `@RestController`、`XxxRequest`、`XxxResponse` | 只做参数校验、类型转换、调用 service；`domain` 对象不直接作为接口响应 |
-| `service` | `@Service` 业务实现，实现本模块 `api` 接口 | 事务边界（`@Transactional`）只放在 service |
+| `service` | `@Service` 业务实现，实现本模块 `api` 接口；事件监听器（`@RabbitListener`）与定时任务（`@Scheduled`） | 事务边界（`@Transactional`）只放在 service；监听器只做参数转换并调用业务方法，处理必须幂等 |
 | `repository` | 基于 jOOQ `DSLContext` 的数据访问类 | 返回 `domain` 对象，jOOQ `Record` 不离开本包 |
 | `domain` | 领域对象（record / class / enum） | 不依赖 Spring、jOOQ |
 

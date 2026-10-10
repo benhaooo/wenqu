@@ -1,12 +1,22 @@
 package com.wenqu.support;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
+import org.awaitility.Awaitility;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
@@ -93,6 +103,60 @@ public final class TestApi {
                 .getResponse()
                 .getContentAsString();
         return ((Number) JsonPath.read(body, "$.data.id")).longValue();
+    }
+
+    /** 导入文本文件（Markdown 或纯文本），返回新文档 id，不等待索引完成。 */
+    public static long importFile(MockMvc mockMvc, long workspaceId, LoggedInUser user, String fileName, String content)
+            throws Exception {
+        MockMultipartFile file =
+                new MockMultipartFile("file", fileName, "text/plain", content.getBytes(StandardCharsets.UTF_8));
+        String body = mockMvc.perform(user.authorize(
+                        multipart("/api/workspaces/{id}/imports", workspaceId).file(file)))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return ((Number) JsonPath.read(body, "$.data.documentId")).longValue();
+    }
+
+    /** 导入文件并等待解析和索引完成，返回文档 id。 */
+    public static long importAndIndex(
+            MockMvc mockMvc, long workspaceId, LoggedInUser user, String fileName, String content) throws Exception {
+        long documentId = importFile(mockMvc, workspaceId, user, fileName, content);
+        awaitImportStatus(mockMvc, workspaceId, user, documentId, "SUCCEEDED");
+        return documentId;
+    }
+
+    /** 等待文档最近的导入任务进入指定状态（最多 30 秒），返回该任务的 JSON。 */
+    public static Map<String, Object> awaitImportStatus(
+            MockMvc mockMvc, long workspaceId, LoggedInUser user, long documentId, String status) {
+        return awaitImport(mockMvc, workspaceId, user, documentId, job -> status.equals(job.get("status")));
+    }
+
+    /** 等待文档最近的导入任务满足条件（最多 30 秒），返回该任务的 JSON。 */
+    public static Map<String, Object> awaitImport(
+            MockMvc mockMvc,
+            long workspaceId,
+            LoggedInUser user,
+            long documentId,
+            Predicate<Map<String, Object>> condition) {
+        AtomicReference<Map<String, Object>> job = new AtomicReference<>();
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(30))
+                .pollInterval(Duration.ofMillis(100))
+                .until(() -> {
+                    String body = mockMvc.perform(user.authorize(get("/api/workspaces/{id}/imports", workspaceId)))
+                            .andReturn()
+                            .getResponse()
+                            .getContentAsString();
+                    List<Map<String, Object>> jobs =
+                            JsonPath.read(body, "$.data[?(@.documentId == %d)]".formatted(documentId));
+                    if (jobs.isEmpty()) {
+                        return false;
+                    }
+                    job.set(jobs.getFirst());
+                    return condition.test(jobs.getFirst());
+                });
+        return job.get();
     }
 
     /** 用单引号书写 JSON，提高测试可读性。 */

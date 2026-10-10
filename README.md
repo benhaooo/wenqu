@@ -4,6 +4,12 @@
 
 > 问渠那得清如许，为有源头活水来。
 
+## 功能
+
+- **文档**：团队空间与成员角色、目录树（拖拽排序、回收站）、块编辑器（自动保存、图片、代码块、表格）。
+- **导入**：PDF、Word、Markdown、纯文本导入为文档，后台解析、切块、向量化，显示处理进度，失败自动重试。
+- **AI 问答**：按整个空间、文件夹或单篇文档提问，流式回答并用角标标注来源，点击角标查看原文片段并跳转到原文高亮；可停止生成、重新生成、评价回答。没有相关资料时直接说明，不编造。
+
 ## 架构
 
 ```mermaid
@@ -49,6 +55,32 @@ make dev-frontend   # 终端 2：启动前端
 
 端口和数据库账号在 `.env` 中配置；端口被占用时修改 `BACKEND_PORT`、`FRONTEND_PORT`、`DB_PORT`。
 
+### 配置模型
+
+在 `.env` 中填写对话模型和 Embedding 模型，两者都使用 OpenAI 兼容接口，可以来自不同的服务：
+
+```bash
+AI_CHAT_BASE_URL=https://api.openai.com/v1
+AI_CHAT_API_KEY=...
+AI_CHAT_MODEL=gpt-4o-mini
+AI_EMBEDDING_BASE_URL=https://api.openai.com/v1
+AI_EMBEDDING_API_KEY=...
+AI_EMBEDDING_MODEL=text-embedding-3-small
+AI_EMBEDDING_DIMENSIONS=1024
+```
+
+`AI_EMBEDDING_DIMENSIONS` 必须与模型返回的维度一致，后端启动时会检查。其他参数（检索数量、相似度阈值、切块大小）见 `.env.example`。
+
+### 演示数据
+
+后端启动后执行：
+
+```bash
+make demo
+```
+
+创建演示账号 `demo@example.test`（密码 `wenqu-demo-2026`，仅用于本地）和「示例团队」空间，导入 [samples/knowledge-base](samples/knowledge-base) 中的 10 篇文档。`make evaluate` 用示例问题评测检索效果，结果见 [docs/evaluation.md](docs/evaluation.md)。
+
 首次编译后端会下载依赖并拉取 PostgreSQL 镜像（jOOQ 代码生成和测试使用 Testcontainers），耗时取决于网络。
 
 ### 常用命令
@@ -72,4 +104,5 @@ make help
 | [docs/architecture.md](docs/architecture.md) | 整体架构 |
 | [docs/conventions/](docs/conventions/) | 开发规范：文档、代码、接口、数据库、Git |
 | [docs/modules/](docs/modules/) | 各模块设计 |
+| [docs/evaluation.md](docs/evaluation.md) | 检索评测 |
 | [docs/_decisions/](docs/_decisions/) | 技术决策记录 |

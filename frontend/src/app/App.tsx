@@ -2,14 +2,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { AuthPage, RequireAuth } from '@/features/auth'
+import { AskAiLink, ChatNavLink, ChatPage } from '@/features/chat'
 import {
   DocumentHomePage,
   DocumentPage,
   SidebarSearch,
-  SidebarTree,
   TrashNavLink,
   TrashPage,
 } from '@/features/document'
+import { ImportNavLink, ImportPage, ReindexSection, SourceFileButton } from '@/features/ingestion'
 import {
   CreateWorkspacePage,
   HomeRedirect,
@@ -20,6 +21,7 @@ import {
 import { isNetworkError } from '@/shared/api/http'
 import { refreshSession } from '@/shared/api/session'
 import { Toaster } from '@/shared/ui/sonner'
+import { SidebarSecondary } from './SidebarSecondary'
 import { SystemStatusPage } from './SystemStatusPage'
 
 const queryClient = new QueryClient({
@@ -46,15 +48,36 @@ const router = createBrowserRouter([
         element: (
           <WorkspaceLayout
             search={<SidebarSearch />}
-            navItems={<TrashNavLink />}
-            tree={<SidebarTree />}
+            navItems={
+              <>
+                <ChatNavLink />
+                <ImportNavLink />
+                <TrashNavLink />
+              </>
+            }
+            tree={<SidebarSecondary />}
           />
         ),
         children: [
           { index: true, element: <DocumentHomePage /> },
-          { path: 'settings', element: <SettingsPage /> },
-          { path: 'd/:nodeId', element: <DocumentPage /> },
+          { path: 'settings', element: <SettingsPage generalSections={<ReindexSection />} /> },
+          {
+            path: 'd/:nodeId',
+            element: (
+              <DocumentPage
+                headerActions={(documentId) => (
+                  <>
+                    <SourceFileButton documentId={documentId} />
+                    <AskAiLink documentId={documentId} />
+                  </>
+                )}
+              />
+            ),
+          },
           { path: 'trash', element: <TrashPage /> },
+          { path: 'import', element: <ImportPage /> },
+          // 同一个路由元素：新会话发出第一个问题后切换到会话地址，流式回答不中断
+          { path: 'chat/:conversationId?', element: <ChatPage /> },
         ],
       },
     ],

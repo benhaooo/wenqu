@@ -1,0 +1,63 @@
+/* AI 回答的 Markdown 排版，与编辑器正文保持一致的节奏 */
+.answer-content {
+  font-size: 15px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.answer-content > * + * {
+  margin-top: 12px;
+}
+.answer-content ul,
+.answer-content ol {
+  padding-left: 22px;
+}
+.answer-content ul {
+  list-style: disc;
+}
+.answer-content ol {
+  list-style: decimal;
+}
+.answer-content li + li {
+  margin-top: 4px;
+}
+.answer-content h1,
+.answer-content h2,
+.answer-content h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.answer-content code {
+  border-radius: var(--radius-sm);
+  background: var(--code);
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.answer-content pre {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--code);
+  padding: 12px 14px;
+  line-height: 1.6;
+}
+.answer-content pre code {
+  background: transparent;
+  padding: 0;
+}
+.answer-content blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 12px;
+  color: var(--text-secondary);
+}
+.answer-content table {
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.answer-content th,
+.answer-content td {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+}
+.answer-content a {
+  color: var(--primary);
+}

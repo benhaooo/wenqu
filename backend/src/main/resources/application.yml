@@ -17,6 +17,9 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   flyway:
+    placeholders:
+      # 向量列维度，只在首次建表时生效，见 docs/modules/retrieval.md
+      "[embedding_dimensions]": ${AI_EMBEDDING_DIMENSIONS:1024}
     default-schema: public
     schemas: public,auth,workspace,document,ingestion,retrieval,chat,usage,infra
     create-schemas: true
@@ -33,6 +36,12 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
+    # 发件箱转发与延迟重试等待 broker 确认后才算发送成功
+    publisher-confirm-type: simple
+    listener:
+      simple:
+        # 任务调用模型耗时较长，每个消费者一次只取一条，避免消息积压在单个消费者上
+        prefetch: 1
 
 wenqu:
   auth:
@@ -40,6 +49,26 @@ wenqu:
     access-token-ttl: ${ACCESS_TOKEN_TTL:PT2H}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL:P7D}
     cookie-secure: ${AUTH_COOKIE_SECURE:false}
+  ai:
+    chat:
+      base-url: ${AI_CHAT_BASE_URL:}
+      api-key: ${AI_CHAT_API_KEY:}
+      model: ${AI_CHAT_MODEL:}
+      temperature: ${AI_CHAT_TEMPERATURE:0.2}
+      timeout: ${AI_CHAT_TIMEOUT:PT120S}
+    embedding:
+      base-url: ${AI_EMBEDDING_BASE_URL:}
+      api-key: ${AI_EMBEDDING_API_KEY:}
+      model: ${AI_EMBEDDING_MODEL:}
+      dimensions: ${AI_EMBEDDING_DIMENSIONS:1024}
+      timeout: ${AI_EMBEDDING_TIMEOUT:PT30S}
+  ingestion:
+    chunk-max-tokens: ${CHUNK_MAX_TOKENS:800}
+    chunk-overlap-tokens: ${CHUNK_OVERLAP_TOKENS:100}
+  chat:
+    top-k: ${RETRIEVAL_TOP_K:8}
+    min-similarity: ${RETRIEVAL_MIN_SIMILARITY:0.35}
+    history-rounds: 5
   storage:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     # 浏览器访问签名链接使用的地址，默认与 endpoint 相同
