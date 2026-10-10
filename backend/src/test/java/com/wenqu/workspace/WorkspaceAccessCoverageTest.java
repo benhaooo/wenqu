@@ -1,6 +1,7 @@
 package com.wenqu.workspace;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 
 import com.wenqu.support.IntegrationTest;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.method.HandlerMethod;
@@ -96,6 +98,11 @@ class WorkspaceAccessCoverageTest {
         String path = endpoint.pattern()
                 .replace("{workspaceId}", Long.toString(workspaceId))
                 .replaceAll("\\{[^}]+}", "1");
+        if (endpoint.multipart()) {
+            return mockMvc.perform(user.authorize(
+                            multipart(endpoint.method(), path).file(new MockMultipartFile("file", new byte[0]))))
+                    .andReturn();
+        }
         return mockMvc.perform(user.authorize(request(endpoint.method(), path))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
@@ -111,18 +118,21 @@ class WorkspaceAccessCoverageTest {
                 if (!pattern.contains("{workspaceId}")) {
                     continue;
                 }
+                boolean multipart = entry.getKey().getConsumesCondition().getConsumableMediaTypes().stream()
+                        .anyMatch(MediaType.MULTIPART_FORM_DATA::includes);
                 for (var method : entry.getKey().getMethodsCondition().getMethods()) {
                     endpoints.add(new Endpoint(
                             HttpMethod.valueOf(method.name()),
                             pattern,
-                            requirement == null ? null : requirement.value()));
+                            requirement == null ? null : requirement.value(),
+                            multipart));
                 }
             }
         }
         return endpoints;
     }
 
-    record Endpoint(HttpMethod method, String pattern, WorkspaceRole requiredRole) {
+    record Endpoint(HttpMethod method, String pattern, WorkspaceRole requiredRole, boolean multipart) {
 
         @Override
         public String toString() {

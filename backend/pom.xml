@@ -27,6 +27,7 @@
         <!-- 与运行时一致的 PostgreSQL 镜像，jOOQ 代码生成和集成测试共用 -->
         <postgres.image>pgvector/pgvector:pg18</postgres.image>
         <awssdk.version>2.55.14</awssdk.version>
+        <tika.version>4.1.0</tika.version>
         <!-- 每个模块独立的 schema，见 docs/conventions/database.md -->
         <db.schemas>auth,workspace,document,ingestion,retrieval,chat,usage,infra</db.schemas>
     </properties>
@@ -100,6 +101,12 @@
                     <artifactId>netty-nio-client</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- 按文件内容检测真实类型 -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>${tika.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>

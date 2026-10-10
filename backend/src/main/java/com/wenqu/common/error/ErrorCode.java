@@ -11,6 +11,8 @@ public enum ErrorCode {
     FORBIDDEN(10003, HttpStatus.FORBIDDEN, "没有权限"),
     NOT_FOUND(10004, HttpStatus.NOT_FOUND, "资源不存在"),
     METHOD_NOT_ALLOWED(10005, HttpStatus.METHOD_NOT_ALLOWED, "请求方法不支持"),
+    FILE_TOO_LARGE(10013, HttpStatus.CONTENT_TOO_LARGE, "文件超过大小限制"),
+    UNSUPPORTED_MEDIA_TYPE(10015, HttpStatus.UNSUPPORTED_MEDIA_TYPE, "不支持的请求格式"),
     INTERNAL_ERROR(10500, HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部错误"),
 
     EMAIL_ALREADY_REGISTERED(11001, HttpStatus.CONFLICT, "该邮箱已注册"),
@@ -22,7 +24,18 @@ public enum ErrorCode {
     WORKSPACE_NOT_FOUND(12004, HttpStatus.NOT_FOUND, "空间不存在或你不是该空间的成员"),
     INVITATION_NOT_FOUND(12010, HttpStatus.NOT_FOUND, "邀请链接无效"),
     INVITATION_EXPIRED(12011, HttpStatus.GONE, "邀请链接已过期"),
-    INVITATION_REVOKED(12012, HttpStatus.GONE, "邀请链接已被撤销");
+    INVITATION_REVOKED(12012, HttpStatus.GONE, "邀请链接已被撤销"),
+
+    NODE_NOT_FOUND(13001, HttpStatus.NOT_FOUND, "文档或文件夹不存在"),
+    INVALID_PARENT(13002, HttpStatus.BAD_REQUEST, "目标位置必须是当前空间中的文件夹"),
+    MOVE_INTO_DESCENDANT(13003, HttpStatus.BAD_REQUEST, "不能移动到自身或其子文件夹中"),
+    INVALID_SIBLING(13004, HttpStatus.BAD_REQUEST, "排序参照的节点不在目标文件夹中"),
+    TRASH_ITEM_NOT_FOUND(13005, HttpStatus.NOT_FOUND, "回收站中没有该项"),
+    DOCUMENT_VERSION_CONFLICT(13006, HttpStatus.CONFLICT, "文档已被其他人修改，请刷新后再编辑"),
+    INVALID_CONTENT(13007, HttpStatus.BAD_REQUEST, "文档内容格式不正确"),
+    CONTENT_TOO_LARGE(13008, HttpStatus.CONTENT_TOO_LARGE, "文档内容过大"),
+    UNSUPPORTED_IMAGE_TYPE(13009, HttpStatus.UNSUPPORTED_MEDIA_TYPE, "只支持 PNG、JPEG、GIF、WebP 图片"),
+    IMAGE_NOT_FOUND(13011, HttpStatus.NOT_FOUND, "图片不存在");
 
     private final int code;
     private final HttpStatus httpStatus;

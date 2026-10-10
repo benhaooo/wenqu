@@ -53,6 +53,13 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void unsupportedContentTypeReturns415() throws Exception {
+        mockMvc.perform(post("/validated").contentType(MediaType.TEXT_PLAIN).content("x"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.code").value(ErrorCode.UNSUPPORTED_MEDIA_TYPE.code()));
+    }
+
+    @Test
     void unexpectedExceptionHidesDetails() throws Exception {
         mockMvc.perform(get("/unexpected"))
                 .andExpect(status().isInternalServerError())

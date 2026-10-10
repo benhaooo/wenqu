@@ -13,9 +13,17 @@ export class ApiError extends Error {
   }
 }
 
+/** 响应不是统一格式（网关错误、代理连不上后端）或请求本身失败，可以重试。 */
+export function isNetworkError(error: unknown): boolean {
+  return !(error instanceof ApiError) || error.code === NOT_API_RESULT
+}
+
 /** 生成的 TanStack Query hooks 使用的错误类型，泛型参数是 orval 约定的签名。 */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type ErrorType<_Error> = ApiError
+
+/** 响应体不是统一格式时使用的错误码。 */
+const NOT_API_RESULT = -1
 
 /** Access Token 无效或过期，见 docs/modules/auth.md。 */
 const UNAUTHENTICATED = 11003
@@ -63,7 +71,11 @@ export async function http<T>(url: string, init?: RequestInit): Promise<T> {
   }
 
   if (!isApiResultBody(body)) {
-    throw new ApiError(-1, `接口返回格式错误（HTTP ${String(response.status)}）`, response.status)
+    throw new ApiError(
+      NOT_API_RESULT,
+      `服务暂时不可用（HTTP ${String(response.status)}）`,
+      response.status,
+    )
   }
   if (!response.ok || body.code !== 0) {
     throw new ApiError(body.code, body.message, response.status)

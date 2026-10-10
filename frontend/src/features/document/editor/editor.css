@@ -1,0 +1,105 @@
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
+
+.ProseMirror ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+.ProseMirror ul[data-type='taskList'] li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.ProseMirror ul[data-type='taskList'] li > label {
+  margin-top: 0.3rem;
+  user-select: none;
+}
+.ProseMirror ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+.ProseMirror ul[data-type='taskList'] li > div > p {
+  margin: 0;
+}
+.ProseMirror ul[data-type='taskList'] li[data-checked='true'] > div {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.ProseMirror div[data-type='callout'] {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid oklch(0.62 0.17 250);
+  border-radius: 0.375rem;
+  background: oklch(0.97 0.02 250);
+}
+.ProseMirror div[data-type='callout'][data-variant='warning'] {
+  border-color: oklch(0.75 0.16 75);
+  background: oklch(0.98 0.03 85);
+}
+.ProseMirror div[data-type='callout'][data-variant='danger'] {
+  border-color: oklch(0.6 0.2 25);
+  background: oklch(0.97 0.02 25);
+}
+.ProseMirror div[data-type='callout'] > :first-child {
+  margin-top: 0;
+}
+.ProseMirror div[data-type='callout'] > :last-child {
+  margin-bottom: 0;
+}
+
+.ProseMirror table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid var(--border);
+  padding: 0.375rem 0.5rem;
+  vertical-align: top;
+}
+.ProseMirror th {
+  background: var(--muted);
+}
+.ProseMirror .selectedCell {
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.ProseMirror pre {
+  background: oklch(0.21 0.01 260);
+  color: oklch(0.93 0.01 260);
+}
+.ProseMirror pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+.ProseMirror .hljs-comment,
+.ProseMirror .hljs-quote {
+  color: oklch(0.6 0.02 260);
+}
+.ProseMirror .hljs-keyword,
+.ProseMirror .hljs-selector-tag,
+.ProseMirror .hljs-built_in {
+  color: oklch(0.72 0.15 310);
+}
+.ProseMirror .hljs-string,
+.ProseMirror .hljs-attr,
+.ProseMirror .hljs-template-variable {
+  color: oklch(0.78 0.14 145);
+}
+.ProseMirror .hljs-number,
+.ProseMirror .hljs-literal,
+.ProseMirror .hljs-type {
+  color: oklch(0.8 0.13 70);
+}
+.ProseMirror .hljs-title,
+.ProseMirror .hljs-function,
+.ProseMirror .hljs-section {
+  color: oklch(0.75 0.12 240);
+}

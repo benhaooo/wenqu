@@ -9,7 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 
 /** 集成测试中通过真实接口准备数据。 */
 public final class TestApi {
@@ -20,7 +20,7 @@ public final class TestApi {
 
     public record LoggedInUser(long id, String email, String accessToken, Cookie refreshCookie) {
 
-        public MockHttpServletRequestBuilder authorize(MockHttpServletRequestBuilder request) {
+        public <B extends AbstractMockHttpServletRequestBuilder<B>> B authorize(B request) {
             return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
         }
     }
@@ -79,6 +79,20 @@ public final class TestApi {
                 .getResponse()
                 .getContentAsString();
         return JsonPath.read(body, "$.data.token");
+    }
+
+    /** 新建节点并返回 id；parentId 为 null 表示根目录。 */
+    public static long createNode(
+            MockMvc mockMvc, long workspaceId, LoggedInUser user, Long parentId, String type, String title)
+            throws Exception {
+        String parent = parentId == null ? "null" : parentId.toString();
+        String body = mockMvc.perform(user.authorize(post("/api/workspaces/{id}/nodes", workspaceId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json("{'parentId':%s,'type':'%s','title':'%s'}", parent, type, title)))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return ((Number) JsonPath.read(body, "$.data.id")).longValue();
     }
 
     /** 用单引号书写 JSON，提高测试可读性。 */
