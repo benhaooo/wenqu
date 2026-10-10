@@ -54,6 +54,15 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- 使用其中的 Nimbus JWT 编解码与 Bearer Token 校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
@@ -101,6 +110,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -252,6 +266,13 @@
                                 <schema><inputSchema>infra</inputSchema></schema>
                             </schemata>
                             <excludes>flyway_schema_history</excludes>
+                            <forcedTypes>
+                                <!-- 时间统一使用 Instant，见 docs/conventions/code.md -->
+                                <forcedType>
+                                    <name>INSTANT</name>
+                                    <includeTypes>(?i:timestamp\ with\ time\ zone)</includeTypes>
+                                </forcedType>
+                            </forcedTypes>
                         </database>
                         <generate>
                             <javaTimeTypes>true</javaTimeTypes>

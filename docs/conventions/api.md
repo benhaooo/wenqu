@@ -3,9 +3,14 @@
 ## 路径与方法
 
 - 所有接口以 `/api` 开头，资源名使用复数名词、kebab-case：`/api/workspaces/{workspaceId}/documents`。
-- 属于空间的资源嵌套在空间路径下，空间 id 出现在路径中，用于统一鉴权。
+- 属于空间的资源嵌套在空间路径下：`/api/workspaces/{workspaceId}/...`，路径变量名固定为 `workspaceId`。这类接口必须标注 `@RequireWorkspaceRole`，访问控制见 [workspace 模块](../modules/workspace.md#空间内接口的访问控制)。
 - 方法语义：`GET` 查询、`POST` 创建或执行动作、`PUT` 整体替换、`PATCH` 部分更新、`DELETE` 删除。
 - 不适合用 CRUD 表达的动作使用子路径动词：`POST /api/.../documents/{id}/restore`。
+
+## 认证
+
+- 除注册、登录、刷新、退出、健康检查和接口文档外，所有接口需要在请求头携带 `Authorization: Bearer <accessToken>`。
+- 令牌机制见 [auth 模块](../modules/auth.md)。
 
 ## 统一响应格式
 
