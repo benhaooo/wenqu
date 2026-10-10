@@ -1,3 +1,92 @@
+/* 正文排版，配色与间距来自 UI 原型 */
+.ProseMirror {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--foreground);
+}
+.ProseMirror > * + * {
+  margin-top: 0;
+}
+.ProseMirror p {
+  margin: 0 0 16px;
+}
+.ProseMirror h1 {
+  margin: 36px 0 14px;
+  font-size: 26px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+.ProseMirror h2 {
+  margin: 32px 0 12px;
+  font-size: 21px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.ProseMirror h3 {
+  margin: 24px 0 10px;
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+.ProseMirror ul,
+.ProseMirror ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+}
+.ProseMirror ul {
+  list-style: disc;
+}
+.ProseMirror ol {
+  list-style: decimal;
+}
+.ProseMirror li > p {
+  margin: 0;
+}
+.ProseMirror a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ProseMirror a:hover {
+  color: var(--primary-strong);
+}
+.ProseMirror blockquote {
+  margin: 0 0 16px;
+  padding-left: 14px;
+  border-left: 3px solid var(--border);
+  color: var(--text-secondary);
+}
+.ProseMirror hr {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+}
+.ProseMirror code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--code);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.ProseMirror pre {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  background: var(--code);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.ProseMirror pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.ProseMirror img {
+  max-width: 100%;
+}
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
@@ -6,100 +95,98 @@
   color: var(--muted-foreground);
 }
 
+/* 任务列表 */
 .ProseMirror ul[data-type='taskList'] {
   list-style: none;
-  padding-left: 0.25rem;
+  padding-left: 2px;
 }
 .ProseMirror ul[data-type='taskList'] li {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: flex-start;
 }
 .ProseMirror ul[data-type='taskList'] li > label {
-  margin-top: 0.3rem;
+  margin-top: 5px;
   user-select: none;
+}
+.ProseMirror ul[data-type='taskList'] li > label input {
+  accent-color: var(--primary);
 }
 .ProseMirror ul[data-type='taskList'] li > div {
   flex: 1;
-}
-.ProseMirror ul[data-type='taskList'] li > div > p {
-  margin: 0;
 }
 .ProseMirror ul[data-type='taskList'] li[data-checked='true'] > div {
   color: var(--muted-foreground);
   text-decoration: line-through;
 }
 
+/* 提示框 */
 .ProseMirror div[data-type='callout'] {
-  margin: 1rem 0;
-  padding: 0.75rem 1rem;
-  border-left: 4px solid oklch(0.62 0.17 250);
-  border-radius: 0.375rem;
-  background: oklch(0.97 0.02 250);
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 .ProseMirror div[data-type='callout'][data-variant='warning'] {
-  border-color: oklch(0.75 0.16 75);
-  background: oklch(0.98 0.03 85);
+  background: var(--cite);
+  color: var(--cite-foreground);
 }
 .ProseMirror div[data-type='callout'][data-variant='danger'] {
-  border-color: oklch(0.6 0.2 25);
-  background: oklch(0.97 0.02 25);
-}
-.ProseMirror div[data-type='callout'] > :first-child {
-  margin-top: 0;
+  background: var(--destructive-soft);
+  color: var(--destructive-strong);
 }
 .ProseMirror div[data-type='callout'] > :last-child {
   margin-bottom: 0;
 }
 
+/* 表格 */
 .ProseMirror table {
-  table-layout: fixed;
   width: 100%;
+  margin: 0 0 16px;
+  table-layout: fixed;
   border-collapse: collapse;
+  font-size: 14px;
 }
 .ProseMirror th,
 .ProseMirror td {
-  border: 1px solid var(--border);
-  padding: 0.375rem 0.5rem;
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
   vertical-align: top;
 }
 .ProseMirror th {
-  background: var(--muted);
+  background: var(--canvas);
+  font-weight: 500;
+  text-align: left;
+}
+.ProseMirror th > p,
+.ProseMirror td > p {
+  margin: 0;
 }
 .ProseMirror .selectedCell {
-  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
-.ProseMirror pre {
-  background: oklch(0.21 0.01 260);
-  color: oklch(0.93 0.01 260);
-}
-.ProseMirror pre code {
-  background: none;
-  color: inherit;
-  padding: 0;
-}
-.ProseMirror .hljs-comment,
-.ProseMirror .hljs-quote {
-  color: oklch(0.6 0.02 260);
-}
+/* 代码高亮：关键字用主色，其余保持低饱和 */
 .ProseMirror .hljs-keyword,
 .ProseMirror .hljs-selector-tag,
 .ProseMirror .hljs-built_in {
-  color: oklch(0.72 0.15 310);
+  color: var(--primary);
 }
 .ProseMirror .hljs-string,
-.ProseMirror .hljs-attr,
-.ProseMirror .hljs-template-variable {
-  color: oklch(0.78 0.14 145);
+.ProseMirror .hljs-attr {
+  color: #8c4a12;
 }
 .ProseMirror .hljs-number,
-.ProseMirror .hljs-literal,
-.ProseMirror .hljs-type {
-  color: oklch(0.8 0.13 70);
+.ProseMirror .hljs-literal {
+  color: #2f5c8a;
+}
+.ProseMirror .hljs-comment,
+.ProseMirror .hljs-quote {
+  color: var(--muted-foreground);
+  font-style: italic;
 }
 .ProseMirror .hljs-title,
-.ProseMirror .hljs-function,
-.ProseMirror .hljs-section {
-  color: oklch(0.75 0.12 240);
+.ProseMirror .hljs-function {
+  color: #6b4c9a;
 }

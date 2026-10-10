@@ -3,14 +3,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useSearchNodes } from '@/shared/api/generated/document/document'
 import { cn } from '@/shared/lib/cn'
-import { Button } from '@/shared/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/dialog'
 import { Input } from '@/shared/ui/input'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 const isMac = typeof navigator !== 'undefined' && navigator.userAgent.includes('Mac')
 
-/** 按标题和正文搜索，快捷键 Ctrl/Cmd + P。 */
+/** 按标题和正文搜索，快捷键 Ctrl/Cmd + K。 */
 export function SearchDialog({ workspaceId }: { workspaceId: number }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -25,7 +24,7 @@ export function SearchDialog({ workspaceId }: { workspaceId: number }) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'p') {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         setOpen(true)
       }
@@ -46,17 +45,19 @@ export function SearchDialog({ workspaceId }: { workspaceId: number }) {
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="w-full justify-start gap-2 text-muted-foreground"
+      <button
+        type="button"
+        className="flex min-h-10 w-full items-center gap-2 rounded-md border border-border bg-background px-3 text-muted-foreground outline-none hover:border-input focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => {
           setOpen(true)
         }}
       >
-        <SearchIcon />
-        搜索
-        <kbd className="ml-auto text-xs">{isMac ? '⌘P' : 'Ctrl P'}</kbd>
-      </Button>
+        <SearchIcon className="size-4" />
+        <span className="flex-1 text-left">搜索文档</span>
+        <kbd className="rounded-[4px] border border-border bg-canvas px-1.5 font-mono text-[11px]">
+          {isMac ? '⌘K' : 'Ctrl K'}
+        </kbd>
+      </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           className="top-24 translate-y-0 gap-0 p-0 sm:max-w-xl"
@@ -103,7 +104,7 @@ export function SearchDialog({ workspaceId }: { workspaceId: number }) {
                   aria-selected={index === selected}
                   className={cn(
                     'cursor-pointer rounded-md px-3 py-2',
-                    index === selected && 'bg-muted',
+                    index === selected && 'bg-accent',
                   )}
                   onMouseEnter={() => {
                     setSelected(index)

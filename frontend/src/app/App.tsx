@@ -1,20 +1,25 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { LoginPage, RegisterPage, RequireAuth } from '@/features/auth'
-import { DocumentPage, DocumentSidebar, TrashPage } from '@/features/document'
+import { AuthPage, RequireAuth } from '@/features/auth'
+import {
+  DocumentHomePage,
+  DocumentPage,
+  SidebarSearch,
+  SidebarTree,
+  TrashNavLink,
+  TrashPage,
+} from '@/features/document'
 import {
   CreateWorkspacePage,
   HomeRedirect,
   InvitePage,
-  MembersPage,
+  SettingsPage,
   WorkspaceLayout,
-  WorkspaceOverviewPage,
 } from '@/features/workspace'
 import { isNetworkError } from '@/shared/api/http'
 import { refreshSession } from '@/shared/api/session'
 import { Toaster } from '@/shared/ui/sonner'
-import { TooltipProvider } from '@/shared/ui/tooltip'
 import { SystemStatusPage } from './SystemStatusPage'
 
 const queryClient = new QueryClient({
@@ -27,8 +32,8 @@ const queryClient = new QueryClient({
 })
 
 const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
-  { path: '/register', element: <RegisterPage /> },
+  { path: '/login', element: <AuthPage mode="login" /> },
+  { path: '/register', element: <AuthPage mode="register" /> },
   { path: '/status', element: <SystemStatusPage /> },
   {
     element: <RequireAuth />,
@@ -38,10 +43,16 @@ const router = createBrowserRouter([
       { path: '/invite/:token', element: <InvitePage /> },
       {
         path: '/w/:workspaceId',
-        element: <WorkspaceLayout sidebar={<DocumentSidebar />} />,
+        element: (
+          <WorkspaceLayout
+            search={<SidebarSearch />}
+            navItems={<TrashNavLink />}
+            tree={<SidebarTree />}
+          />
+        ),
         children: [
-          { index: true, element: <WorkspaceOverviewPage /> },
-          { path: 'members', element: <MembersPage /> },
+          { index: true, element: <DocumentHomePage /> },
+          { path: 'settings', element: <SettingsPage /> },
           { path: 'd/:nodeId', element: <DocumentPage /> },
           { path: 'trash', element: <TrashPage /> },
         ],
@@ -58,9 +69,7 @@ export function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <RouterProvider router={router} />
-      </TooltipProvider>
+      <RouterProvider router={router} />
       <Toaster />
     </QueryClientProvider>
   )

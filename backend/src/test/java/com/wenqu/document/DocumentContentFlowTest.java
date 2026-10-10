@@ -52,7 +52,8 @@ class DocumentContentFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("部署手册"))
                 .andExpect(jsonPath("$.data.content.type").value("doc"))
-                .andExpect(jsonPath("$.data.version").value(0));
+                .andExpect(jsonPath("$.data.version").value(0))
+                .andExpect(jsonPath("$.data.updatedByName").value("测试用户"));
     }
 
     @Test

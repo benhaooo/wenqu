@@ -7,21 +7,19 @@ import {
   getListMyWorkspacesQueryKey,
   useCreateWorkspace,
 } from '@/shared/api/generated/workspace/workspace'
-import { Alert, AlertDescription } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { FormField } from '@/shared/ui/form-field'
+import { InlineAlert } from '@/shared/ui/inline-alert'
 
 const schema = z.object({
   name: z.string().trim().min(1, '请输入空间名称').max(50, '空间名称最多 50 个字符'),
 })
 
-type FormValues = z.infer<typeof schema>
-
 export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const createWorkspace = useCreateWorkspace()
-  const form = useForm<FormValues>({ resolver: zodResolver(schema) })
+  const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) })
 
   const onSubmit = form.handleSubmit((values) => {
     createWorkspace.mutate(
@@ -37,20 +35,17 @@ export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
   })
 
   return (
-    <form className="grid gap-4" onSubmit={(event) => void onSubmit(event)} noValidate>
-      {createWorkspace.error && (
-        <Alert variant="destructive">
-          <AlertDescription>{createWorkspace.error.message}</AlertDescription>
-        </Alert>
-      )}
+    <form className="flex flex-col gap-6" onSubmit={(event) => void onSubmit(event)} noValidate>
       <FormField
         id="workspace-name"
         label="空间名称"
-        placeholder="例如：后端组"
+        placeholder="例如：前端团队"
+        hint="通常用团队或项目的名字，可以随时修改。"
         error={form.formState.errors.name?.message}
         {...form.register('name')}
       />
-      <Button type="submit" disabled={createWorkspace.isPending}>
+      {createWorkspace.error && <InlineAlert>{createWorkspace.error.message}</InlineAlert>}
+      <Button type="submit" size="lg" className="self-end" disabled={createWorkspace.isPending}>
         创建空间
       </Button>
     </form>

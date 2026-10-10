@@ -1,5 +1,7 @@
 package com.wenqu.document.service;
 
+import com.wenqu.auth.api.UserApi;
+import com.wenqu.auth.api.UserSummary;
 import com.wenqu.common.error.BusinessException;
 import com.wenqu.common.error.ErrorCode;
 import com.wenqu.document.domain.DocumentContent;
@@ -10,6 +12,7 @@ import com.wenqu.document.repository.NodeRepository;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class DocumentContentService {
     private final ContentRepository contentRepository;
     private final ImageRepository imageRepository;
     private final NodeRepository nodeRepository;
+    private final UserApi userApi;
     private final JsonMapper jsonMapper;
     private final Clock clock;
 
@@ -35,13 +39,21 @@ public class DocumentContentService {
             ContentRepository contentRepository,
             ImageRepository imageRepository,
             NodeRepository nodeRepository,
+            UserApi userApi,
             JsonMapper jsonMapper,
             Clock clock) {
         this.contentRepository = contentRepository;
         this.imageRepository = imageRepository;
         this.nodeRepository = nodeRepository;
+        this.userApi = userApi;
         this.jsonMapper = jsonMapper;
         this.clock = clock;
+    }
+
+    /** 最后修改人的昵称，用户不存在时为空字符串。 */
+    public String updatedByName(DocumentContent content) {
+        UserSummary user = userApi.findByIds(List.of(content.updatedBy())).get(content.updatedBy());
+        return user == null ? "" : user.displayName();
     }
 
     public DocumentContent get(long workspaceId, long nodeId) {

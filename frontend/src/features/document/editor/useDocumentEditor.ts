@@ -44,7 +44,7 @@ export function useDocumentEditor({
       shouldRerenderOnTransaction: false,
       editorProps: {
         attributes: {
-          class: 'prose prose-neutral max-w-none focus:outline-none min-h-[50vh]',
+          class: 'focus:outline-none min-h-[50vh]',
           'aria-label': '文档正文',
         },
       },
