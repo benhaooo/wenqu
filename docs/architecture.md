@@ -19,7 +19,7 @@ flowchart LR
 | PostgreSQL + pgvector | 业务数据与向量存储在同一个库，见[0001](_decisions/0001-向量存储选择pgvector.md)                          |
 | Redis                 | 缓存与限流                                                                                              |
 | RabbitMQ              | 异步任务：文档解析、向量化、重新索引                                                                    |
-| MinIO                 | 文件存储（S3 兼容），文件通过有时效的签名链接访问                                                       |
+| MinIO                 | 文件存储，后端通过 S3 协议访问，文件通过有时效的签名链接访问，见 [0009](_decisions/0009-对象存储使用MinIO社区构建镜像与S3协议.md)                                                       |
 | 模型供应商            | 对话模型与 Embedding 模型，通过配置切换，见[0004](_decisions/0004-AI接入使用SpringAI与OpenAI兼容接口.md) |
 
 本地依赖由根目录 `docker-compose.yml` 启动。

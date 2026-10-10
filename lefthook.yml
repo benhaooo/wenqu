@@ -1,4 +1,8 @@
 # 提交前检查，规则见 docs/conventions/git.md
+output:
+  - failure
+  - summary
+
 pre-commit:
   parallel: true
   jobs:

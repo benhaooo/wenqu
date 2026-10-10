@@ -37,13 +37,15 @@ Maven 无需安装，使用仓库内的 `backend/mvnw`。
 ```bash
 git clone <仓库地址> wenqu && cd wenqu
 make setup          # 生成 .env、安装前端依赖与 Git 钩子
-make deps           # 启动 PostgreSQL 等依赖
+make deps           # 启动 PostgreSQL、Redis、RabbitMQ、MinIO
 make dev-backend    # 终端 1：启动后端
 make dev-frontend   # 终端 2：启动前端
 ```
 
 - 前端：<http://localhost:5173>
 - 接口文档（Swagger UI）：<http://localhost:8080/swagger-ui.html>
+- 健康检查：<http://localhost:8080/api/system/health>
+- RabbitMQ 管理界面：<http://localhost:15672>，MinIO 控制台：<http://localhost:9001>（账号见 `.env`）
 
 端口和数据库账号在 `.env` 中配置；端口被占用时修改 `BACKEND_PORT`、`FRONTEND_PORT`、`DB_PORT`。
 

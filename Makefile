@@ -40,5 +40,5 @@ api: ## 导出 openapi.json 并生成前端接口代码
 	pnpm --filter frontend gen:api
 
 db-reset: ## 删除本地数据库数据并重新启动（后端启动时 Flyway 重新迁移）
-	docker compose down -v postgres
+	docker compose rm -sfv postgres && docker volume rm -f wenqu_pgdata
 	docker compose up -d --wait postgres

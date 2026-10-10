@@ -16,7 +16,7 @@ class SystemHealthControllerTest {
     MockMvc mockMvc;
 
     @Test
-    void reportsDatabaseConnectionStatus() throws Exception {
+    void reportsConnectionStatusOfAllDependencies() throws Exception {
         mockMvc.perform(get("/api/system/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
