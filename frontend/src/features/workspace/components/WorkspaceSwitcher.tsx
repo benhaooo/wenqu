@@ -2,7 +2,7 @@ import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useListMyWorkspaces } from '@/shared/api/generated/workspace/workspace'
-import { Button } from '@/shared/ui/button'
+import { BrandMark } from '@/shared/ui/brand-mark'
 import {
   Dialog,
   DialogContent,
@@ -34,10 +34,16 @@ export function WorkspaceSwitcher() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="max-w-64 justify-between gap-2 font-semibold">
-            <span className="truncate">{current?.name ?? '选择空间'}</span>
-            <ChevronsUpDownIcon className="text-muted-foreground" />
-          </Button>
+          <button
+            type="button"
+            className="flex min-h-11 w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left outline-none hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring aria-expanded:bg-secondary"
+          >
+            <BrandMark />
+            <span className="min-w-0 flex-1 truncate font-semibold">
+              {current?.name ?? '选择空间'}
+            </span>
+            <ChevronsUpDownIcon className="size-4 text-muted-foreground" />
+          </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuLabel>我的空间</DropdownMenuLabel>

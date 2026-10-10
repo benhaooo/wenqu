@@ -1,8 +1,17 @@
 import { EditorContent } from '@tiptap/react'
+import { MoreHorizontalIcon, Trash2Icon } from 'lucide-react'
 import { Fragment, useState } from 'react'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { useGetDocument } from '@/shared/api/generated/document/document'
 import type { DocumentResponse } from '@/shared/api/generated/model'
+import { relativeTime } from '@/shared/lib/relativeTime'
+import { Button } from '@/shared/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import { Skeleton } from '@/shared/ui/skeleton'
 import { useDocumentEditor } from '../editor/useDocumentEditor'
 import { useNodeIndex } from '../hooks/useNodeIndex'
@@ -19,10 +28,10 @@ export function DocumentPage() {
     query: { select: (result) => result.data, staleTime: Infinity, refetchOnWindowFocus: false },
   })
 
-  if (error) return <p className="text-muted-foreground">{error.message}</p>
+  if (error) return <p className="px-8 py-12 text-muted-foreground">{error.message}</p>
   if (!document) {
     return (
-      <div className="mx-auto grid max-w-3xl gap-4">
+      <div className="mx-auto grid max-w-[760px] gap-4 px-8 pt-20">
         <Skeleton className="h-10 w-1/2" />
         <Skeleton className="h-4" />
         <Skeleton className="h-4 w-5/6" />
@@ -43,8 +52,10 @@ function DocumentView({
   document: DocumentResponse
   canEdit: boolean
 }) {
+  const navigate = useNavigate()
   const { index } = useNodeIndex(workspaceId)
-  const folders = pathTo(index, document.id).slice(0, -1)
+  const mutations = useNodeMutations(workspaceId)
+  const path = pathTo(index, document.id)
   const { editor, status, retry } = useDocumentEditor({
     workspaceId,
     nodeId: document.id,
@@ -54,25 +65,65 @@ function DocumentView({
   })
 
   return (
-    <article className="mx-auto max-w-3xl">
-      <div className="flex min-h-6 items-center justify-between gap-4">
-        <nav className="flex flex-wrap gap-1 text-sm text-muted-foreground" aria-label="路径">
-          {folders.map((folder) => (
-            <Fragment key={folder.id}>
-              <span>{folder.title}</span>
-              <span>/</span>
+    <div className="flex min-h-full flex-col">
+      <header className="sticky top-0 z-10 flex min-h-14 flex-wrap items-center gap-3 border-b border-border-subtle bg-background px-6 py-2.5">
+        <nav
+          aria-label="路径"
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-muted-foreground"
+        >
+          {path.map((node, i) => (
+            <Fragment key={node.id}>
+              {i > 0 && <span aria-hidden="true">/</span>}
+              <span
+                className={
+                  i === path.length - 1 ? 'truncate font-medium text-foreground' : 'truncate'
+                }
+              >
+                {node.title}
+              </span>
             </Fragment>
           ))}
         </nav>
         {canEdit ? (
           <SaveStatusBadge status={status} onRetry={retry} />
         ) : (
-          <span className="text-xs text-muted-foreground">只读</span>
+          <span className="text-[13px] text-muted-foreground">只读</span>
         )}
-      </div>
-      <TitleInput workspaceId={workspaceId} document={document} editable={canEdit} />
-      <EditorContent editor={editor} className="mt-6" />
-    </article>
+        {canEdit && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="更多操作"
+                className="text-muted-foreground"
+              >
+                <MoreHorizontalIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => {
+                  mutations.remove(document.id)
+                  void navigate(`/w/${String(workspaceId)}`)
+                }}
+              >
+                <Trash2Icon />
+                移到回收站
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </header>
+      <article className="mx-auto w-full max-w-[760px] px-8 pt-12 pb-[120px] max-sm:px-4">
+        <TitleInput workspaceId={workspaceId} document={document} editable={canEdit} />
+        <p className="mt-2 mb-8 text-[13px] text-muted-foreground">
+          {document.updatedByName} · 编辑于 {relativeTime(document.updatedAt)}
+        </p>
+        <EditorContent editor={editor} />
+      </article>
+    </div>
   )
 }
 
@@ -87,8 +138,9 @@ function TitleInput({
 }) {
   const [title, setTitle] = useState(document.title)
   const mutations = useNodeMutations(workspaceId)
+  const className = 'w-full bg-transparent text-[32px] leading-[1.3] font-bold outline-none'
 
-  if (!editable) return <h1 className="mt-2 text-3xl font-bold">{document.title}</h1>
+  if (!editable) return <h1 className={className}>{document.title}</h1>
 
   const commit = () => {
     const next = title.trim()
@@ -104,7 +156,7 @@ function TitleInput({
       aria-label="文档标题"
       maxLength={200}
       placeholder="无标题文档"
-      className="mt-2 w-full bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground"
+      className={`${className} placeholder:text-muted-foreground`}
       onChange={(event) => {
         setTitle(event.target.value)
       }}

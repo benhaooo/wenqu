@@ -1314,7 +1314,7 @@
         "description" : "业务数据，出错时为 null"
       },
       "DocumentResponse" : {
-        "required" : [ "content", "id", "title", "updatedAt", "version" ],
+        "required" : [ "content", "id", "title", "updatedAt", "updatedByName", "version" ],
         "type" : "object",
         "properties" : {
           "content" : {
@@ -1329,7 +1329,12 @@
           },
           "updatedAt" : {
             "type" : "string",
+            "description" : "标题或正文最后修改时间",
             "format" : "date-time"
+          },
+          "updatedByName" : {
+            "type" : "string",
+            "description" : "最后修改人昵称"
           },
           "version" : {
             "type" : "integer",

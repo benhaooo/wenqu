@@ -71,7 +71,7 @@ trigram 索引对少于 3 个字符的关键词无法缩小范围，此时退化
 | GET | `/trash` | 回收站：每次删除的顶层节点、下级数量、彻底删除时间 | VIEWER |
 | POST | `/trash/{nodeId}/restore` | 恢复整个删除批次 | EDITOR |
 | GET | `/search?q=` | 按标题和正文搜索，标题命中优先，最多 20 条 | VIEWER |
-| GET | `/documents/{nodeId}` | 标题、正文 JSON、版本 | VIEWER |
+| GET | `/documents/{nodeId}` | 标题、正文 JSON、版本、最后编辑人与时间 | VIEWER |
 | PUT | `/documents/{nodeId}/content` | 保存正文（`content`、`baseVersion`），版本不一致返回 409 | EDITOR |
 | POST | `/documents/{nodeId}/images` | 上传图片（multipart `file`），返回 `imageId` | EDITOR |
 | GET | `/images/{imageId}/url` | 图片签名链接，1 小时有效 | VIEWER |
@@ -161,13 +161,14 @@ sequenceDiagram
 
 | 路由 | 页面 |
 |---|---|
-| `/w/:workspaceId`（左侧栏） | 目录树、搜索、新建、回收站入口 |
-| `/w/:workspaceId/d/:nodeId` | 文档页：路径、标题、保存状态、编辑器 |
+| `/w/:workspaceId` | 空间首页：最近编辑的 10 篇文档 |
+| `/w/:workspaceId`（左侧栏） | 搜索入口、回收站导航、「文档」目录树与新建菜单，由应用层放入 workspace 的页面框架 |
+| `/w/:workspaceId/d/:nodeId` | 文档页：顶栏为路径、保存状态、更多操作（移到回收站）；正文区为标题、最后编辑人与时间、编辑器 |
 | `/w/:workspaceId/trash` | 回收站 |
 
 - 目录树使用 `@headless-tree/react` 与 `@tanstack/react-virtual`：只渲染可见行。生产构建下 500 个节点全部展开时，每次展开平均 4.8ms（P95 10.2ms），无超过 50ms 的长任务。
 - 拖拽：放在行的上下边缘为同级排序，放在文件夹中间为移入；前端同样禁止把文件夹拖进自身或子孙。
-- 搜索对话框快捷键 Ctrl/Cmd + P，输入停顿 250ms 后请求。
+- 搜索对话框快捷键 Ctrl/Cmd + K，输入停顿 250ms 后请求。
 - 目录树由 `app` 层通过插槽放入 workspace 的页面框架，workspace 前端模块不依赖 document。
 
 #### 编辑器

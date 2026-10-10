@@ -90,7 +90,8 @@ public class DocumentController {
                 content.title(),
                 jsonMapper.readTree(content.contentJson()),
                 content.version(),
-                content.updatedAt());
+                content.updatedAt(),
+                contentService.updatedByName(content));
     }
 
     record DocumentResponse(
@@ -106,8 +107,11 @@ public class DocumentController {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "保存时作为 baseVersion")
             int version,
 
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Instant updatedAt) {}
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "标题或正文最后修改时间")
+            Instant updatedAt,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "最后修改人昵称")
+            String updatedByName) {}
 
     record SaveContentRequest(
             @NotNull(message = "正文不能为空")

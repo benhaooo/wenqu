@@ -10,13 +10,7 @@ import {
 } from '@headless-tree/core'
 import { useTree } from '@headless-tree/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import {
-  ChevronRightIcon,
-  FileTextIcon,
-  FolderIcon,
-  FolderOpenIcon,
-  MoreHorizontalIcon,
-} from 'lucide-react'
+import { ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import type { NodeResponse } from '@/shared/api/generated/model'
@@ -33,7 +27,7 @@ import { useNodeMutations } from '../hooks/useNodeMutations'
 import type { NodeIndex } from '../tree'
 import { pathTo, ROOT_ID } from '../tree'
 
-const ROW_HEIGHT = 30
+const ROW_HEIGHT = 32
 const INDENT = 16
 
 type Item = NodeResponse | undefined
@@ -138,11 +132,11 @@ export function DocumentTree({
   const dragLine = tree.getDragLineStyle()
 
   if (items.length === 0) {
-    return <p className="px-3 py-2 text-sm text-muted-foreground">空间里还没有文档</p>
+    return <p className="px-2.5 py-2 text-[13px] text-muted-foreground">空间里还没有文档</p>
   }
 
   return (
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto px-2">
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
       <div
         {...tree.getContainerProps('目录')}
         className="relative"
@@ -202,7 +196,6 @@ function TreeRow({
   const node = item.getItemData()
   const level = item.getItemMeta().level
   const folder = item.isFolder()
-  const Icon = folder ? (item.isExpanded() ? FolderOpenIcon : FolderIcon) : FileTextIcon
 
   return (
     <div
@@ -212,26 +205,26 @@ function TreeRow({
       {item.isRenaming() ? (
         <input
           {...item.getRenameInputProps()}
-          className="h-7 w-full rounded border bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-8 w-full rounded-sm border border-primary bg-background px-2 outline-none ring-3 ring-primary-soft"
         />
       ) : (
         <button
           {...item.getProps()}
           className={cn(
-            'flex h-7 min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 text-left text-sm hover:bg-muted',
-            active && 'bg-muted font-medium',
-            item.isFocused() && 'ring-1 ring-ring',
-            item.isUnorderedDragTarget() && 'bg-primary/10 ring-1 ring-primary',
+            'flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-sm px-2 text-left text-foreground outline-none hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring',
+            active &&
+              'bg-sidebar-accent font-medium text-sidebar-accent-foreground hover:bg-sidebar-accent',
+            item.isUnorderedDragTarget() && 'bg-accent ring-1 ring-primary',
           )}
         >
           <ChevronRightIcon
+            aria-hidden="true"
             className={cn(
               'size-3.5 shrink-0 text-muted-foreground transition-transform',
               !folder && 'invisible',
               item.isExpanded() && 'rotate-90',
             )}
           />
-          <Icon className="size-4 shrink-0 text-muted-foreground" />
           <span className="truncate">{node?.title}</span>
         </button>
       )}

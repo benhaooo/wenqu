@@ -64,6 +64,8 @@ features/<feature>/
 - 服务端数据不复制到 Zustand；Zustand 只保存客户端状态（如当前空间、Access Token、UI 状态）。
 - 渲染用户内容或 AI 回答时不使用 `dangerouslySetInnerHTML`，确需渲染 HTML 时先经过净化。
 - 样式使用 Tailwind 工具类，通用组件放 `shared/ui`（shadcn/ui）。
+- 颜色、圆角、字体只使用 `src/index.css` 中定义的设计令牌（如 `bg-primary`、`text-muted-foreground`、`border-border-subtle`），令牌取值来自 UI 原型；不在组件中新增零散的颜色值。
+- 中文使用系统字体，西文与数字使用 IBM Plex Sans，代码使用 JetBrains Mono（均为本地依赖，不请求外部字体服务）。
 
 ### 格式与检查
 

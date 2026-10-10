@@ -5,9 +5,9 @@ import {
   useAcceptInvitation,
   usePreviewInvitation,
 } from '@/shared/api/generated/workspace/workspace'
-import { Alert, AlertDescription } from '@/shared/ui/alert'
+import { BrandMark } from '@/shared/ui/brand-mark'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { InlineAlert } from '@/shared/ui/inline-alert'
 import { roleLabels } from '../roles'
 
 export function InvitePage() {
@@ -37,38 +37,33 @@ export function InvitePage() {
 
   const error = preview.error ?? accept.error
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">加入团队空间</CardTitle>
-          {preview.data && (
-            <CardDescription>
-              {preview.data.inviterName} 邀请你以「{roleLabels[preview.data.role]}」身份加入
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {error ? (
+    <div className="flex min-h-svh items-center justify-center bg-canvas px-4">
+      <main className="flex w-full max-w-[420px] flex-col gap-6 rounded-2xl border border-border-subtle bg-background px-8 py-9">
+        <BrandMark className="size-10 rounded-[10px] text-lg" />
+        {error ? (
+          <>
+            <h1 className="text-2xl font-bold">无法加入空间</h1>
+            <InlineAlert>{error.message}</InlineAlert>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/">返回首页</Link>
+            </Button>
+          </>
+        ) : (
+          preview.data && (
             <>
-              <Alert variant="destructive">
-                <AlertDescription>{error.message}</AlertDescription>
-              </Alert>
-              <Button asChild variant="outline">
-                <Link to="/">返回首页</Link>
+              <div className="flex flex-col gap-1.5">
+                <p className="text-muted-foreground">
+                  {preview.data.inviterName} 邀请你以「{roleLabels[preview.data.role]}」身份加入
+                </p>
+                <h1 className="text-2xl font-bold">{preview.data.workspaceName}</h1>
+              </div>
+              <Button size="lg" onClick={join} disabled={accept.isPending}>
+                {accept.isPending ? '加入中…' : '加入空间'}
               </Button>
             </>
-          ) : (
-            preview.data && (
-              <>
-                <p className="text-2xl font-semibold">{preview.data.workspaceName}</p>
-                <Button onClick={join} disabled={accept.isPending}>
-                  {accept.isPending ? '加入中…' : '加入空间'}
-                </Button>
-              </>
-            )
-          )}
-        </CardContent>
-      </Card>
-    </main>
+          )
+        )}
+      </main>
+    </div>
   )
 }

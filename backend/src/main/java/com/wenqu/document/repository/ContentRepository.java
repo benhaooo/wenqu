@@ -22,7 +22,7 @@ public class ContentRepository {
 
     /** 未删除文档的正文。 */
     public Optional<DocumentContent> find(long workspaceId, long nodeId) {
-        return dsl.select(NODE.ID, NODE.TITLE, CONTENT.CONTENT_JSON, CONTENT.VERSION, CONTENT.UPDATED_AT)
+        return dsl.select(NODE.ID, NODE.TITLE, CONTENT.CONTENT_JSON, CONTENT.VERSION, NODE.UPDATED_AT, NODE.UPDATED_BY)
                 .from(NODE)
                 .join(CONTENT)
                 .on(CONTENT.NODE_ID.eq(NODE.ID))
@@ -35,7 +35,8 @@ public class ContentRepository {
                         record.get(NODE.TITLE),
                         record.get(CONTENT.CONTENT_JSON).data(),
                         record.get(CONTENT.VERSION),
-                        record.get(CONTENT.UPDATED_AT)));
+                        record.get(NODE.UPDATED_AT),
+                        record.get(NODE.UPDATED_BY)));
     }
 
     /** 仅当当前版本等于 baseVersion 时保存，返回是否保存成功。 */
