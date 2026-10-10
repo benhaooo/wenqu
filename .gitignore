@@ -1,0 +1,17 @@
+# 环境变量
+.env
+
+# 依赖与构建产物
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+
+# 生成代码
+frontend/src/shared/api/generated/
+
+# IDE 与系统文件
+.idea/
+.vscode/
+*.iml
+.DS_Store

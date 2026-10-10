@@ -1,0 +1,22 @@
+# 提交前检查，规则见 docs/conventions/git.md
+pre-commit:
+  parallel: true
+  jobs:
+    - name: backend-format
+      glob: "backend/**/*.java"
+      run: ./backend/mvnw -q -f backend/pom.xml spotless:check
+
+    - name: frontend-format
+      root: "frontend/"
+      glob: "frontend/**/*.{ts,tsx,js,mjs,json,css,html,md}"
+      run: pnpm exec prettier --check {staged_files}
+
+    - name: frontend-lint
+      root: "frontend/"
+      glob: "frontend/**/*.{ts,tsx,js,mjs}"
+      run: pnpm exec eslint --max-warnings=0 {staged_files}
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: pnpm exec commitlint --edit {1}

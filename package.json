@@ -1,0 +1,13 @@
+{
+  "name": "wenqu",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "lefthook": "^2.2.1"
+  }
+}
