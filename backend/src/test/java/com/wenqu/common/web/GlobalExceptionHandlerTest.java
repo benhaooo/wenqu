@@ -2,6 +2,7 @@ package com.wenqu.common.web;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 class GlobalExceptionHandlerTest {
 
@@ -67,8 +69,20 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.message").value(ErrorCode.INTERNAL_ERROR.defaultMessage()));
     }
 
+    @Test
+    void clientDisconnectWritesNoErrorBody() throws Exception {
+        mockMvc.perform(get("/disconnected"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
     @RestController
     static class FakeController {
+
+        @GetMapping("/disconnected")
+        void disconnected() throws AsyncRequestNotUsableException {
+            throw new AsyncRequestNotUsableException("Broken pipe");
+        }
 
         @GetMapping("/business")
         void business() {

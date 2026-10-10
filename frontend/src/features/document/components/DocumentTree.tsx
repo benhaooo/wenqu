@@ -11,7 +11,7 @@ import {
 import { useTree } from '@headless-tree/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import type { NodeResponse } from '@/shared/api/generated/model'
 import { cn } from '@/shared/lib/cn'
@@ -39,10 +39,12 @@ export function DocumentTree({
   workspaceId,
   index,
   canEdit,
+  renderBadge,
 }: {
   workspaceId: number
   index: NodeIndex
   canEdit: boolean
+  renderBadge?: (documentId: number) => ReactNode
 }) {
   const navigate = useNavigate()
   const activeId = useParams().nodeId
@@ -152,6 +154,7 @@ export function DocumentTree({
               top={row.start}
               active={item.getId() === activeId}
               canEdit={canEdit}
+              renderBadge={renderBadge}
               onCreate={(type) => {
                 const node = item.getItemData()
                 if (!node) return
@@ -183,6 +186,7 @@ function TreeRow({
   top,
   active,
   canEdit,
+  renderBadge,
   onCreate,
   onDelete,
 }: {
@@ -190,6 +194,7 @@ function TreeRow({
   top: number
   active: boolean
   canEdit: boolean
+  renderBadge?: (documentId: number) => ReactNode
   onCreate: (type: 'FOLDER' | 'DOCUMENT') => void
   onDelete: () => void
 }) {
@@ -226,6 +231,7 @@ function TreeRow({
             )}
           />
           <span className="truncate">{node?.title}</span>
+          {node?.type === 'DOCUMENT' && renderBadge?.(node.id)}
         </button>
       )}
       {canEdit && !item.isRenaming() && (

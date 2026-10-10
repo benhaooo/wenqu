@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { useGetWorkspace } from '@/shared/api/generated/workspace/workspace'
 import { relativeTime } from '@/shared/lib/relativeTime'
 import { useNodeIndex } from '../hooks/useNodeIndex'
-import { useWorkspaceAccess } from '../hooks/useWorkspaceAccess'
+import { useWorkspaceAccess } from '@/shared/api/useWorkspaceAccess'
 import { pathTo } from '../tree'
 
 const RECENT_LIMIT = 10

@@ -72,7 +72,13 @@ flowchart RL
 
 - 箭头表示「依赖」。依赖是单向的，不存在循环。
 - 所有业务模块都可以依赖 `infra` 和 `common`；`infra` 只依赖 `common`；`common` 不依赖任何模块。
-- 下游模块需要通知上游时（例如文档被删除后 `retrieval` 删除文本块），由上游发布领域事件、下游订阅，不反向调用。
+- 上游模块的状态变化需要下游处理时（例如文档彻底删除后 `retrieval` 删除文本块），由上游发布领域事件、下游订阅，不反向调用。
+
+| 事件 | 发布方 | 订阅方 |
+|---|---|---|
+| `document.content-changed` | document | ingestion（重新索引） |
+| `document.purged` | document | retrieval（删除文本块）、ingestion（删除任务与原文件） |
+| `ingestion.job-queued` | ingestion | ingestion（执行索引任务） |
 
 ### 模块之间的交互
 
@@ -86,7 +92,7 @@ flowchart RL
 com.wenqu.<模块>
 ├── api/          对外暴露的服务接口、DTO、领域事件（其他模块唯一可见的部分）
 ├── controller/   HTTP 接口，以及接口专用的 XxxRequest / XxxResponse
-├── service/      业务逻辑，实现 api 中的接口
+├── service/      业务逻辑，实现 api 中的接口；事件监听器与定时任务
 ├── repository/   数据访问，唯一可以使用 jOOQ 生成类的地方
 └── domain/       领域对象，不依赖 Spring 和 jOOQ
 ```

@@ -20,8 +20,14 @@
     "description" : "团队空间、成员与邀请",
     "name" : "workspace"
   }, {
+    "description" : "文件导入与索引任务",
+    "name" : "ingestion"
+  }, {
     "description" : "账号与登录",
     "name" : "auth"
+  }, {
+    "description" : "AI 问答",
+    "name" : "chat"
   } ],
   "paths" : {
     "/api/auth/login" : {
@@ -322,6 +328,213 @@
         "tags" : [ "workspace" ]
       }
     },
+    "/api/workspaces/{workspaceId}/conversations" : {
+      "get" : {
+        "operationId" : "listConversations",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultListConversationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "我在该空间的最近 50 个会话",
+        "tags" : [ "chat" ]
+      },
+      "post" : {
+        "operationId" : "createConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultConversationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "新建会话",
+        "tags" : [ "chat" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/conversations/{conversationId}" : {
+      "delete" : {
+        "operationId" : "deleteConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultVoid"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "删除会话",
+        "tags" : [ "chat" ]
+      },
+      "get" : {
+        "operationId" : "getConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultConversationDetailResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "会话中的全部消息、引用与反馈",
+        "tags" : [ "chat" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/conversations/{conversationId}/messages" : {
+      "post" : {
+        "description" : "事件依次为 retrieval、若干 token、citations、（失败时）error、done；每个事件的 data 是 ChatStreamEvent JSON。校验或检索失败时返回普通 JSON 错误响应。客户端断开连接即停止生成。",
+        "operationId" : "askQuestion",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/event-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChatStreamEvent"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "提问，回答以 SSE 流式返回",
+        "tags" : [ "chat" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/conversations/{conversationId}/regenerate" : {
+      "post" : {
+        "operationId" : "regenerateAnswer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/event-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChatStreamEvent"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "重新生成最后一个问题的回答，事件格式同 askQuestion",
+        "tags" : [ "chat" ]
+      }
+    },
     "/api/workspaces/{workspaceId}/documents/{nodeId}" : {
       "get" : {
         "operationId" : "getDocument",
@@ -456,6 +669,42 @@
         "tags" : [ "document" ]
       }
     },
+    "/api/workspaces/{workspaceId}/documents/{nodeId}/source-file" : {
+      "get" : {
+        "operationId" : "getSourceFile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "nodeId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultSourceFileResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "导入文档的原文件下载链接（10 分钟有效）",
+        "tags" : [ "ingestion" ]
+      }
+    },
     "/api/workspaces/{workspaceId}/images/{imageId}/url" : {
       "get" : {
         "operationId" : "getImageUrl",
@@ -490,6 +739,150 @@
         },
         "summary" : "图片的签名访问链接（1 小时有效）",
         "tags" : [ "document" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/imports" : {
+      "get" : {
+        "operationId" : "listImports",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultListImportResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "最近 50 个导入任务及进度",
+        "tags" : [ "ingestion" ]
+      },
+      "post" : {
+        "operationId" : "importFile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "description" : "目标文件夹，不传为根目录",
+          "in" : "query",
+          "name" : "parentId",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "description" : "目标文件夹，不传为根目录",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "file" ],
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultImportResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "导入文件（PDF、Word、Markdown、纯文本，不超过 20MB），立即在目录树中创建文档，后台解析与索引",
+        "tags" : [ "ingestion" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/index-status" : {
+      "get" : {
+        "operationId" : "listIndexStatus",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultListIndexStatusResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "索引未完成的文档：处理中、等待重试或失败（每篇文档最近一次任务）",
+        "tags" : [ "ingestion" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/ingest-jobs/{jobId}/retry" : {
+      "post" : {
+        "operationId" : "retryIngestJob",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "jobId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultVoid"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "重试失败的任务",
+        "tags" : [ "ingestion" ]
       }
     },
     "/api/workspaces/{workspaceId}/invitations" : {
@@ -618,6 +1011,52 @@
         },
         "summary" : "空间成员",
         "tags" : [ "workspace" ]
+      }
+    },
+    "/api/workspaces/{workspaceId}/messages/{messageId}/feedback" : {
+      "put" : {
+        "operationId" : "rateAnswer",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultVoid"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "评价回答，rating 为 null 时取消评价",
+        "tags" : [ "chat" ]
       }
     },
     "/api/workspaces/{workspaceId}/nodes" : {
@@ -810,6 +1249,34 @@
         "tags" : [ "document" ]
       }
     },
+    "/api/workspaces/{workspaceId}/reindex" : {
+      "post" : {
+        "operationId" : "reindexWorkspace",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "workspaceId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResultReindexResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "重新索引空间内全部文档（更换 Embedding 模型或切块参数后使用）",
+        "tags" : [ "ingestion" ]
+      }
+    },
     "/api/workspaces/{workspaceId}/search" : {
       "get" : {
         "operationId" : "searchNodes",
@@ -912,6 +1379,40 @@
   },
   "components" : {
     "schemas" : {
+      "ApiResultConversationDetailResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ConversationDetailResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultConversationResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ConversationResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "ApiResultCreatedInvitationResponse" : {
         "required" : [ "code", "data", "message" ],
         "type" : "object",
@@ -980,6 +1481,23 @@
           }
         }
       },
+      "ApiResultImportResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ImportResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "ApiResultInvitationPreviewResponse" : {
         "required" : [ "code", "data", "message" ],
         "type" : "object",
@@ -991,6 +1509,69 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/InvitationPreviewResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultListConversationResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "description" : "业务数据，出错时为 null",
+            "items" : {
+              "$ref" : "#/components/schemas/ConversationResponse"
+            }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultListImportResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "description" : "业务数据，出错时为 null",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportResponse"
+            }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultListIndexStatusResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "description" : "业务数据，出错时为 null",
+            "items" : {
+              "$ref" : "#/components/schemas/IndexStatusResponse"
+            }
           },
           "message" : {
             "type" : "string"
@@ -1140,6 +1721,23 @@
           }
         }
       },
+      "ApiResultReindexResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ReindexResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "ApiResultSavedContentResponse" : {
         "required" : [ "code", "data", "message" ],
         "type" : "object",
@@ -1151,6 +1749,23 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/SavedContentResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiResultSourceFileResponse" : {
+        "required" : [ "code", "data", "message" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "description" : "0 表示成功，其他为错误码",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/SourceFileResponse"
           },
           "message" : {
             "type" : "string"
@@ -1243,6 +1858,106 @@
           }
         }
       },
+      "AskRequest" : {
+        "required" : [ "question", "scopeType" ],
+        "type" : "object",
+        "properties" : {
+          "question" : {
+            "maxLength" : 2000,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "scopeNodeId" : {
+            "type" : "integer",
+            "description" : "scopeType 为 FOLDER 或 DOCUMENT 时必填",
+            "format" : "int64"
+          },
+          "scopeType" : {
+            "$ref" : "#/components/schemas/ScopeType"
+          }
+        }
+      },
+      "ChatStreamEvent" : {
+        "required" : [ "type" ],
+        "type" : "object",
+        "properties" : {
+          "citations" : {
+            "type" : "array",
+            "description" : "retrieval：提供给模型的全部资料（marker 为资料编号）；citations：回答实际引用的资料",
+            "items" : {
+              "$ref" : "#/components/schemas/CitationResponse"
+            }
+          },
+          "documents" : {
+            "type" : "array",
+            "description" : "retrieval：检索命中的文档",
+            "items" : {
+              "$ref" : "#/components/schemas/SourceDocumentResponse"
+            }
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "error：失败原因"
+          },
+          "messageId" : {
+            "type" : "integer",
+            "description" : "done：保存后的回答 id",
+            "format" : "int64"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/MessageStatus"
+          },
+          "text" : {
+            "type" : "string",
+            "description" : "token：新生成的文本"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ChatStreamEventType"
+          }
+        }
+      },
+      "ChatStreamEventType" : {
+        "type" : "string",
+        "enum" : [ "RETRIEVAL", "TOKEN", "CITATIONS", "ERROR", "DONE" ]
+      },
+      "CitationResponse" : {
+        "required" : [ "blockFrom", "blockTo", "documentId", "documentTitle", "headingPath", "marker", "snippet" ],
+        "type" : "object",
+        "properties" : {
+          "blockFrom" : {
+            "type" : "integer",
+            "description" : "对应正文顶层块范围起点（含）",
+            "format" : "int32"
+          },
+          "blockTo" : {
+            "type" : "integer",
+            "description" : "对应正文顶层块范围终点（含）",
+            "format" : "int32"
+          },
+          "documentId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "documentTitle" : {
+            "type" : "string",
+            "description" : "回答时的文档标题"
+          },
+          "headingPath" : {
+            "type" : "string",
+            "description" : "所在标题路径，可能为空字符串"
+          },
+          "marker" : {
+            "type" : "integer",
+            "description" : "回答中的角标序号 [marker]",
+            "format" : "int32"
+          },
+          "snippet" : {
+            "type" : "string",
+            "description" : "原文片段"
+          }
+        },
+        "description" : "retrieval：提供给模型的全部资料（marker 为资料编号）；citations：回答实际引用的资料"
+      },
       "ComponentResponse" : {
         "required" : [ "name", "status" ],
         "type" : "object",
@@ -1255,6 +1970,44 @@
             "$ref" : "#/components/schemas/HealthStatus"
           }
         }
+      },
+      "ConversationDetailResponse" : {
+        "required" : [ "id", "messages", "title" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "messages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MessageResponse"
+            }
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "ConversationResponse" : {
+        "required" : [ "id", "title", "updatedAt" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
       },
       "CreateInvitationRequest" : {
         "required" : [ "role", "validDays" ],
@@ -1344,6 +2097,14 @@
         },
         "description" : "业务数据，出错时为 null"
       },
+      "FeedbackRequest" : {
+        "type" : "object",
+        "properties" : {
+          "rating" : {
+            "$ref" : "#/components/schemas/Rating"
+          }
+        }
+      },
       "HealthStatus" : {
         "type" : "string",
         "enum" : [ "UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN" ]
@@ -1365,6 +2126,80 @@
         "properties" : {
           "url" : {
             "type" : "string"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "ImportResponse" : {
+        "required" : [ "attempts", "createdAt", "documentId", "embeddedCount", "fileName", "fileSize", "id", "queuedAhead", "status" ],
+        "type" : "object",
+        "properties" : {
+          "attempts" : {
+            "type" : "integer",
+            "description" : "已开始处理的次数",
+            "format" : "int32"
+          },
+          "chunkCount" : {
+            "type" : "integer",
+            "description" : "文本块数量，开始向量化后才有值",
+            "format" : "int32"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "documentId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "embeddedCount" : {
+            "type" : "integer",
+            "description" : "已向量化的文本块数量",
+            "format" : "int32"
+          },
+          "errorMessage" : {
+            "type" : "string",
+            "description" : "失败原因；排队状态下为上次失败的原因（等待重试）"
+          },
+          "fileName" : {
+            "type" : "string"
+          },
+          "fileSize" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "queuedAhead" : {
+            "type" : "integer",
+            "description" : "排在前面的排队任务数",
+            "format" : "int32"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/JobStatus"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "IndexStatusResponse" : {
+        "required" : [ "documentId", "jobId", "status" ],
+        "type" : "object",
+        "properties" : {
+          "documentId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "errorMessage" : {
+            "type" : "string"
+          },
+          "jobId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/JobStatus"
           }
         },
         "description" : "业务数据，出错时为 null"
@@ -1421,6 +2256,10 @@
         },
         "description" : "业务数据，出错时为 null"
       },
+      "JobStatus" : {
+        "type" : "string",
+        "enum" : [ "QUEUED", "PARSING", "EMBEDDING", "SUCCEEDED", "FAILED" ]
+      },
       "LoginRequest" : {
         "required" : [ "email", "password" ],
         "type" : "object",
@@ -1458,6 +2297,55 @@
           }
         },
         "description" : "业务数据，出错时为 null"
+      },
+      "MessageResponse" : {
+        "required" : [ "citations", "content", "createdAt", "id", "role", "status" ],
+        "type" : "object",
+        "properties" : {
+          "citations" : {
+            "type" : "array",
+            "description" : "回答引用的资料，提问为空列表",
+            "items" : {
+              "$ref" : "#/components/schemas/CitationResponse"
+            }
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "rating" : {
+            "$ref" : "#/components/schemas/Rating"
+          },
+          "role" : {
+            "$ref" : "#/components/schemas/MessageRole"
+          },
+          "scopeNodeId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "scopeType" : {
+            "$ref" : "#/components/schemas/ScopeType"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/MessageStatus"
+          }
+        }
+      },
+      "MessageRole" : {
+        "type" : "string",
+        "enum" : [ "USER", "ASSISTANT" ]
+      },
+      "MessageStatus" : {
+        "type" : "string",
+        "description" : "done：回答状态",
+        "enum" : [ "COMPLETED", "STOPPED", "FAILED" ]
       },
       "MoveNodeRequest" : {
         "required" : [ "afterNodeId", "parentId" ],
@@ -1510,6 +2398,10 @@
         "type" : "string",
         "enum" : [ "FOLDER", "DOCUMENT" ]
       },
+      "Rating" : {
+        "type" : "string",
+        "enum" : [ "UP", "DOWN" ]
+      },
       "RegisterRequest" : {
         "required" : [ "displayName", "email", "password" ],
         "type" : "object",
@@ -1531,6 +2423,18 @@
             "type" : "string"
           }
         }
+      },
+      "ReindexResponse" : {
+        "required" : [ "queued" ],
+        "type" : "object",
+        "properties" : {
+          "queued" : {
+            "type" : "integer",
+            "description" : "新排队的文档数",
+            "format" : "int32"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
       },
       "RenameNodeRequest" : {
         "required" : [ "title" ],
@@ -1572,6 +2476,10 @@
         },
         "description" : "业务数据，出错时为 null"
       },
+      "ScopeType" : {
+        "type" : "string",
+        "enum" : [ "WORKSPACE", "FOLDER", "DOCUMENT" ]
+      },
       "SearchHitResponse" : {
         "required" : [ "id", "snippet", "title", "type" ],
         "type" : "object",
@@ -1589,6 +2497,33 @@
           },
           "type" : {
             "$ref" : "#/components/schemas/NodeType"
+          }
+        },
+        "description" : "业务数据，出错时为 null"
+      },
+      "SourceDocumentResponse" : {
+        "required" : [ "documentId", "title" ],
+        "type" : "object",
+        "properties" : {
+          "documentId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "description" : "retrieval：检索命中的文档"
+      },
+      "SourceFileResponse" : {
+        "required" : [ "fileName", "url" ],
+        "type" : "object",
+        "properties" : {
+          "fileName" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string"
           }
         },
         "description" : "业务数据，出错时为 null"

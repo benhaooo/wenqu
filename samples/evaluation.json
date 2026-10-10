@@ -1,0 +1,94 @@
+[
+  {
+    "question": "Access Token 的有效期是多久？",
+    "expected": "接口鉴权设计"
+  },
+  {
+    "question": "Refresh Token 存在哪里，为什么这样存？",
+    "expected": "接口鉴权设计"
+  },
+  {
+    "question": "刷新令牌被重复使用会发生什么？",
+    "expected": "接口鉴权设计"
+  },
+  {
+    "question": "接口返回的数据可以放到 Zustand 里吗？",
+    "expected": "前端架构说明"
+  },
+  {
+    "question": "多个请求同时遇到 token 过期怎么处理？",
+    "expected": "前端架构说明"
+  },
+  {
+    "question": "前端的接口类型是怎么来的？",
+    "expected": "前端架构说明"
+  },
+  {
+    "question": "生产环境的数据库密码在哪里配置？",
+    "expected": "安全规范"
+  },
+  {
+    "question": "渲染 AI 生成的内容有什么安全要求？",
+    "expected": "安全规范"
+  },
+  {
+    "question": "访问别人的空间为什么返回 404？",
+    "expected": "安全规范"
+  },
+  {
+    "question": "本地开发需要安装哪些软件？",
+    "expected": "本地开发环境"
+  },
+  {
+    "question": "端口被占用了怎么办？",
+    "expected": "本地开发环境"
+  },
+  {
+    "question": "周五可以发布吗？",
+    "expected": "发布流程"
+  },
+  {
+    "question": "发布需要谁审批？",
+    "expected": "发布流程"
+  },
+  {
+    "question": "生产环境灰度分几批？",
+    "expected": "发布流程"
+  },
+  {
+    "question": "提交信息应该怎么写？",
+    "expected": "Git提交规范"
+  },
+  {
+    "question": "PR 多久之内要有人评审？",
+    "expected": "代码评审规范"
+  },
+  {
+    "question": "长列表怎么做性能优化？",
+    "expected": "前端性能优化指南"
+  },
+  {
+    "question": "新人第一天要做什么？",
+    "expected": "新人入门"
+  },
+  {
+    "question": "线上出故障怎么回滚？",
+    "expected": "故障处理手册"
+  },
+  {
+    "question": "P0 故障多久内响应？",
+    "expected": "故障处理手册"
+  },
+  {
+    "question": "公司年会在哪里举办？",
+    "expected": null
+  },
+  {
+    "question": "今年的年终奖怎么发？",
+    "expected": null
+  },
+  {
+    "question": "办公室的打印机怎么连接？",
+    "expected": null
+  }
+]

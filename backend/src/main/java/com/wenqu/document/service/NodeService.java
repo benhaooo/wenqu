@@ -4,6 +4,7 @@ import com.wenqu.auth.api.UserApi;
 import com.wenqu.auth.api.UserSummary;
 import com.wenqu.common.error.BusinessException;
 import com.wenqu.common.error.ErrorCode;
+import com.wenqu.document.api.DocumentsPurgedEvent;
 import com.wenqu.document.domain.FractionalIndex;
 import com.wenqu.document.domain.Node;
 import com.wenqu.document.domain.NodeType;
@@ -14,6 +15,7 @@ import com.wenqu.document.domain.TrashEntry;
 import com.wenqu.document.domain.TrashItem;
 import com.wenqu.document.repository.ImageRepository;
 import com.wenqu.document.repository.NodeRepository;
+import com.wenqu.infra.outbox.api.OutboxPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
@@ -32,16 +34,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class NodeService {
 
     private static final int SEARCH_LIMIT = 20;
+    private static final int PURGED_EVENT_BATCH_SIZE = 1000;
 
     private final NodeRepository nodeRepository;
     private final ImageRepository imageRepository;
     private final UserApi userApi;
+    private final OutboxPublisher outboxPublisher;
     private final Clock clock;
 
-    public NodeService(NodeRepository nodeRepository, ImageRepository imageRepository, UserApi userApi, Clock clock) {
+    public NodeService(
+            NodeRepository nodeRepository,
+            ImageRepository imageRepository,
+            UserApi userApi,
+            OutboxPublisher outboxPublisher,
+            Clock clock) {
         this.nodeRepository = nodeRepository;
         this.imageRepository = imageRepository;
         this.userApi = userApi;
+        this.outboxPublisher = outboxPublisher;
         this.clock = clock;
     }
 
@@ -140,14 +150,22 @@ public class NodeService {
     }
 
     /**
-     * 彻底删除超过保留期的回收站内容。返回被删除文档的图片对象，由调用方在事务提交后从对象存储删除。
+     * 彻底删除超过保留期的回收站内容，发布 {@link DocumentsPurgedEvent} 通知下游删除文本块等派生数据。返回被删除文档的图片对象，由调用方在事务提交后从对象存储删除。
      */
     @Transactional
     public PurgedTrash purgeExpiredTrash() {
         Instant cutoff = clock.instant().minus(Trash.RETENTION);
         List<String> imageKeys = imageRepository.findObjectKeysOfNodesDeletedBefore(cutoff);
-        int nodes = nodeRepository.purgeDeletedBefore(cutoff);
-        return new PurgedTrash(nodes, imageKeys);
+        List<Node> purged = nodeRepository.purgeDeletedBefore(cutoff);
+        List<Long> documentIds =
+                purged.stream().filter(node -> !node.isFolder()).map(Node::id).toList();
+        for (int start = 0; start < documentIds.size(); start += PURGED_EVENT_BATCH_SIZE) {
+            outboxPublisher.publish(
+                    DocumentsPurgedEvent.ROUTING_KEY,
+                    new DocumentsPurgedEvent(
+                            documentIds.subList(start, Math.min(documentIds.size(), start + PURGED_EVENT_BATCH_SIZE))));
+        }
+        return new PurgedTrash(purged.size(), imageKeys);
     }
 
     public List<SearchHit> search(long workspaceId, String keyword) {

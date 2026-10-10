@@ -91,9 +91,26 @@ trigram 索引对少于 3 个字符的关键词无法缩小范围，此时退化
 | 13009 | 415 | 图片类型不是 PNG、JPEG、GIF、WebP（按内容检测） |
 | 13011 | 404 | 图片不存在或不属于该空间 |
 
-### 模块 API
+### 模块 API（`com.wenqu.document.api`）
 
-无。
+`DocumentApi`，供 ingestion、chat 使用，调用方负责角色校验：
+
+| 方法 | 说明 |
+|---|---|
+| `createDocument(workspaceId, parentId, title, userId)` | 在文件夹最后新建空文档（导入文件） |
+| `replaceContent(workspaceId, documentId, blocks, userId)` | 用导入内容（`ImportedBlock`）整体替换正文，不做版本校验，返回新版本；不发布 `DocumentContentChangedEvent` |
+| `findSnapshot(workspaceId, documentId)` | 未删除文档的标题、版本与顶层块（`DocumentBlock`：位置、类型、标题级别、纯文本） |
+| `findActiveDocumentIds(workspaceId, folderId)` | 未删除的文档 id：整个空间或文件夹子树 |
+| `findActiveDocuments(workspaceId, ids)` | ids 中未删除的文档：标题与所在文件夹路径 |
+
+发布的事件（经 [发件箱](infra.md#事务性发件箱)）：
+
+| 路由键 | 事件 | 时机 |
+|---|---|---|
+| `document.content-changed` | `DocumentContentChangedEvent(workspaceId, documentId, userId)` | 编辑器保存正文；同一文档停止编辑 30 秒后才投递（防抖） |
+| `document.purged` | `DocumentsPurgedEvent(documentIds)` | 回收站清理彻底删除文档，每个事件最多 1000 个 id |
+
+移入回收站和恢复不发布事件：下游按 `findActiveDocumentIds`、`findActiveDocuments` 过滤已删除的文档。
 
 ## 核心流程
 
@@ -124,7 +141,7 @@ flowchart LR
 ```
 
 - 先单独删除的子节点属于更早的批次，恢复父文件夹时不会一起恢复。
-- `TrashPurgeJob` 每天 03:00 彻底删除 `deleted_at` 早于 30 天前的节点。
+- `TrashPurgeJob` 每天 03:00 彻底删除 `deleted_at` 早于 30 天前的节点，并在同一事务中发布 `document.purged`。
 
 ### 正文保存
 
@@ -150,6 +167,11 @@ sequenceDiagram
 - 链接只允许 `http:`、`https:`、`mailto:` 和站内路径，其他链接（如 `javascript:`）去掉链接保留文字。
 - 图片节点只保存 `imageId`，且必须是本空间上传过的图片，否则删除该节点。
 - 纯文本由服务端从净化后的 JSON 提取，块级节点之间换行，不信任前端提交的文本。
+- 保存成功后在同一事务中写入防抖的 `document.content-changed` 事件。
+
+### 导入内容
+
+`ProseMirrorContent.fromImported` 把导入文件解析出的块转换为文档 JSON：标题级别超过 3 的按 3 级处理，连续的同类列表项合并为一个列表，段落内的换行保留为硬换行，空白块丢弃；结果再经过同一套净化。
 
 ### 图片
 
@@ -163,13 +185,14 @@ sequenceDiagram
 |---|---|
 | `/w/:workspaceId` | 空间首页：最近编辑的 10 篇文档 |
 | `/w/:workspaceId`（左侧栏） | 搜索入口、回收站导航、「文档」目录树与新建菜单，由应用层放入 workspace 的页面框架 |
-| `/w/:workspaceId/d/:nodeId` | 文档页：顶栏为路径、保存状态、更多操作（移到回收站）；正文区为标题、最后编辑人与时间、编辑器 |
+| `/w/:workspaceId/d/:nodeId` | 文档页：顶栏为路径、其他模块的操作（下载原文件、问 AI）、保存状态、更多操作（移到回收站）；正文区为标题、最后编辑人与时间、编辑器 |
 | `/w/:workspaceId/trash` | 回收站 |
 
 - 目录树使用 `@headless-tree/react` 与 `@tanstack/react-virtual`：只渲染可见行。生产构建下 500 个节点全部展开时，每次展开平均 4.8ms（P95 10.2ms），无超过 50ms 的长任务。
 - 拖拽：放在行的上下边缘为同级排序，放在文件夹中间为移入；前端同样禁止把文件夹拖进自身或子孙。
 - 搜索对话框快捷键 Ctrl/Cmd + K，输入停顿 250ms 后请求。
-- 目录树由 `app` 层通过插槽放入 workspace 的页面框架，workspace 前端模块不依赖 document。
+- 目录树由 `app` 层通过插槽放入 workspace 的页面框架，workspace 前端模块不依赖 document。目录树行末的索引状态（`renderBadge`）和文档页顶栏的附加操作（`headerActions`）同样由 `app` 层传入，document 前端模块不依赖 ingestion、chat。
+- 文档页链接带 `blocks=3-5` 时（AI 回答的引用跳转），`BlockHighlight` 扩展以装饰高亮第 3～5 个顶层块并滚动到第一个块；高亮不修改文档，用户开始编辑后消失。
 
 #### 编辑器
 
@@ -197,6 +220,7 @@ sequenceDiagram
 |---|---|
 | workspace `@RequireWorkspaceRole` | 接口访问控制 |
 | auth `UserApi` | 回收站中删除人的昵称 |
+| infra `OutboxPublisher` | 发布正文变更、彻底删除事件 |
 | infra `ObjectStorage` | 图片存储与签名链接 |
 | Apache Tika（tika-core） | 图片真实类型检测 |
 | PostgreSQL `pg_trgm` 扩展 | 模糊搜索索引 |

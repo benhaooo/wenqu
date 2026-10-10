@@ -1,4 +1,5 @@
 import { PlusIcon, Trash2Icon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Button } from '@/shared/ui/button'
 import {
   DropdownMenu,
@@ -10,7 +11,7 @@ import { SidebarLink } from '@/shared/ui/sidebar-link'
 import { Skeleton } from '@/shared/ui/skeleton'
 import { useNodeIndex } from '../hooks/useNodeIndex'
 import { useNodeMutations } from '../hooks/useNodeMutations'
-import { useWorkspaceAccess } from '../hooks/useWorkspaceAccess'
+import { useWorkspaceAccess } from '@/shared/api/useWorkspaceAccess'
 import { DocumentTree } from './DocumentTree'
 import { SearchDialog } from './SearchDialog'
 
@@ -30,8 +31,8 @@ export function TrashNavLink() {
   )
 }
 
-/** 侧栏中的「文档」目录树。 */
-export function SidebarTree() {
+/** 侧栏中的「文档」目录树。renderBadge 由应用层传入，在文档行末显示其他模块的状态（如索引进度）。 */
+export function SidebarTree({ renderBadge }: { renderBadge?: (documentId: number) => ReactNode }) {
   const { workspaceId, canEdit } = useWorkspaceAccess()
   const { index, isPending } = useNodeIndex(workspaceId)
   const mutations = useNodeMutations(workspaceId)
@@ -78,7 +79,12 @@ export function SidebarTree() {
           <Skeleton className="h-5 w-2/3" />
         </div>
       ) : (
-        <DocumentTree workspaceId={workspaceId} index={index} canEdit={canEdit} />
+        <DocumentTree
+          workspaceId={workspaceId}
+          index={index}
+          canEdit={canEdit}
+          renderBadge={renderBadge}
+        />
       )}
     </>
   )

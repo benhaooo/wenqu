@@ -28,6 +28,13 @@
         <postgres.image>pgvector/pgvector:pg18</postgres.image>
         <awssdk.version>2.55.14</awssdk.version>
         <tika.version>4.1.0</tika.version>
+        <spring-ai.version>2.0.1</spring-ai.version>
+        <jtokkit.version>1.1.0</jtokkit.version>
+        <commonmark.version>0.30.0</commonmark.version>
+        <!-- 与 tika-parser-microsoft-module 依赖的 poi-ooxml 版本一致 -->
+        <poi.version>5.5.1</poi.version>
+        <!-- 向量维度，与 AI_EMBEDDING_DIMENSIONS 默认值一致，仅用于 jOOQ 代码生成 -->
+        <embedding.dimensions>1024</embedding.dimensions>
         <!-- 每个模块独立的 schema，见 docs/conventions/database.md -->
         <db.schemas>auth,workspace,document,ingestion,retrieval,chat,usage,infra</db.schemas>
     </properties>
@@ -38,6 +45,13 @@
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
                 <version>${awssdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -107,6 +121,40 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>${tika.version}</version>
+        </dependency>
+        <!-- 导入文件解析：PDF、Word -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parser-pdf-module</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parser-microsoft-module</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <!-- Tika 排除了 poi-ooxml-lite（缺少解析 Word 用到的类），需要完整的 OOXML schema -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-full</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <!-- 导入文件解析：Markdown -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <!-- 切块时计算 token 数 -->
+        <dependency>
+            <groupId>com.knuddels</groupId>
+            <artifactId>jtokkit</artifactId>
+            <version>${jtokkit.version}</version>
+        </dependency>
+        <!-- 对话与 Embedding 模型客户端（OpenAI 兼容接口），见 docs/_decisions/0004 -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -222,6 +270,9 @@
                     <defaultSchema>public</defaultSchema>
                     <schemas>public,${db.schemas}</schemas>
                     <createSchemas>true</createSchemas>
+                    <placeholders>
+                        <embedding_dimensions>${embedding.dimensions}</embedding_dimensions>
+                    </placeholders>
                     <locations>
                         <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
@@ -274,6 +325,12 @@
                             </schemata>
                             <excludes>flyway_schema_history</excludes>
                             <forcedTypes>
+                                <!-- pgvector 的 vector 类型，jOOQ 开源版不内置 -->
+                                <forcedType>
+                                    <userType>float[]</userType>
+                                    <binding>com.wenqu.jooq.binding.PgVectorBinding</binding>
+                                    <includeTypes>(?i:(public\.)?vector)</includeTypes>
+                                </forcedType>
                                 <!-- 时间统一使用 Instant，见 docs/conventions/code.md -->
                                 <forcedType>
                                     <name>INSTANT</name>

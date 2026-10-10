@@ -1,5 +1,8 @@
 package com.wenqu.document.domain;
 
+import com.wenqu.document.api.DocumentBlock;
+import com.wenqu.document.api.ImportedBlock;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +11,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
@@ -81,6 +85,93 @@ public final class ProseMirrorContent {
         StringBuilder text = new StringBuilder();
         appendText(document, text);
         return text.toString().replaceAll("\n{3,}", "\n\n").strip();
+    }
+
+    /** 顶层块及其纯文本，用于切块；index 与编辑器中顶层块的位置一致。 */
+    public static List<DocumentBlock> blocks(JsonNode document) {
+        List<DocumentBlock> blocks = new ArrayList<>();
+        int index = 0;
+        for (JsonNode node : document.path("content").values()) {
+            String text = plainText(node);
+            DocumentBlock block = switch (node.path("type").asString("")) {
+                case "heading" ->
+                    new DocumentBlock(
+                            index,
+                            DocumentBlock.Kind.HEADING,
+                            node.path("attrs").path("level").asInt(1),
+                            text);
+                case "codeBlock" -> new DocumentBlock(index, DocumentBlock.Kind.CODE, 0, text);
+                default -> new DocumentBlock(index, DocumentBlock.Kind.TEXT, 0, text);
+            };
+            blocks.add(block);
+            index++;
+        }
+        return blocks;
+    }
+
+    /** 把导入文件解析出的块转换为文档 JSON，连续的同类列表项合并为一个列表，空白块丢弃。 */
+    public static ObjectNode fromImported(List<ImportedBlock> blocks) {
+        ObjectNode document = JsonNodeFactory.instance.objectNode().put("type", "doc");
+        ArrayNode content = document.putArray("content");
+        ArrayNode currentList = null;
+        ImportedBlock.Type currentListType = null;
+        for (ImportedBlock block : blocks) {
+            String text = block.text() == null ? "" : block.text().strip();
+            if (text.isEmpty()) {
+                continue;
+            }
+            ImportedBlock.Type type = block.type();
+            boolean listItem = type == ImportedBlock.Type.BULLET_ITEM || type == ImportedBlock.Type.ORDERED_ITEM;
+            if (!listItem) {
+                currentList = null;
+                currentListType = null;
+            }
+            switch (type) {
+                case HEADING -> {
+                    ObjectNode heading = content.addObject().put("type", "heading");
+                    heading.putObject("attrs").put("level", Math.clamp(block.level(), 1, 3));
+                    appendInline(heading, text);
+                }
+                case PARAGRAPH -> appendInline(content.addObject().put("type", "paragraph"), text);
+                case CODE -> {
+                    ObjectNode code = content.addObject().put("type", "codeBlock");
+                    String language = block.language();
+                    if (language != null && CODE_LANGUAGE.matcher(language).matches()) {
+                        code.putObject("attrs").put("language", language);
+                    }
+                    code.putArray("content").addObject().put("type", "text").put("text", text);
+                }
+                case QUOTE -> {
+                    ObjectNode quote = content.addObject().put("type", "blockquote");
+                    appendInline(quote.putArray("content").addObject().put("type", "paragraph"), text);
+                }
+                case BULLET_ITEM, ORDERED_ITEM -> {
+                    if (currentListType != type) {
+                        currentList = content.addObject()
+                                .put("type", type == ImportedBlock.Type.BULLET_ITEM ? "bulletList" : "orderedList")
+                                .putArray("content");
+                        currentListType = type;
+                    }
+                    ObjectNode item = currentList.addObject().put("type", "listItem");
+                    appendInline(item.putArray("content").addObject().put("type", "paragraph"), text);
+                }
+            }
+        }
+        return document;
+    }
+
+    /** 段落内的换行保留为硬换行。 */
+    private static void appendInline(ObjectNode block, String text) {
+        ArrayNode inline = block.putArray("content");
+        String[] lines = text.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                inline.addObject().put("type", "hardBreak");
+            }
+            if (!lines[i].isEmpty()) {
+                inline.addObject().put("type", "text").put("text", lines[i]);
+            }
+        }
     }
 
     private static void sanitizeChildren(ObjectNode parent, Set<UUID> allowedImageIds) {

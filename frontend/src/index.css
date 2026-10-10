@@ -45,6 +45,10 @@
   --color-brand-deep-muted: var(--brand-deep-muted);
   --color-surface-subtle: var(--surface-subtle);
   --color-code: var(--code);
+  --color-file-word: var(--file-word);
+  --color-file-word-foreground: var(--file-word-foreground);
+  --color-dropzone: var(--dropzone);
+  --color-dropzone-border: var(--dropzone-border);
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
   --color-input: var(--input);
@@ -99,6 +103,12 @@
   /* 设置页分区、代码块的浅底 */
   --surface-subtle: #fafbfa;
   --code: #f3f5f3;
+  /* 导入列表中 Word 文件的类型角标 */
+  --file-word: #e1e9f3;
+  --file-word-foreground: #24508c;
+  /* 导入页的拖放区域 */
+  --dropzone: #f4f8f6;
+  --dropzone-border: #9fb3a9;
   --border: #dce1dc;
   --border-subtle: #e6eae6;
   --input: #c9d1cb;

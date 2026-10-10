@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, http } from './http'
+import { ApiError, http, httpStream, SseParser } from './http'
 import { setAccessToken, useSession } from './session'
 
 function json(status: number, body: unknown) {
@@ -72,5 +72,78 @@ describe('http', () => {
 
     await expect(http('/api/x')).rejects.toMatchObject({ code: 11003 })
     expect(useSession.getState()).toMatchObject({ accessToken: null, status: 'anonymous' })
+  })
+})
+
+function eventStream(...chunks: string[]) {
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      const encoder = new TextEncoder()
+      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk))
+      controller.close()
+    },
+  })
+  return new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+}
+
+describe('SseParser', () => {
+  it('splits events across chunks and joins multi-line data', () => {
+    const parser = new SseParser()
+
+    expect(parser.push('event:token\ndata:{"a"')).toEqual([])
+    expect(parser.push(':1}\n\ndata: line1\r\ndata: line2\r\n\n')).toEqual([
+      '{"a":1}',
+      'line1\nline2',
+    ])
+  })
+})
+
+describe('httpStream', () => {
+  const fetchMock = vi.fn<typeof fetch>()
+
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock)
+    setAccessToken('token-1')
+  })
+
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+  })
+
+  it('delivers each event data as JSON', async () => {
+    fetchMock.mockResolvedValueOnce(
+      eventStream('event:token\ndata:{"text":"你"}\n\nevent:to', 'ken\ndata:{"text":"好"}\n\n'),
+    )
+    const events: string[] = []
+
+    await httpStream('/api/s', { method: 'POST' }, (data) => events.push(data))
+
+    expect(events).toEqual(['{"text":"你"}', '{"text":"好"}'])
+  })
+
+  it('throws the API error returned before streaming starts', async () => {
+    fetchMock.mockResolvedValueOnce(
+      json(503, { code: 16004, message: 'AI 服务暂时不可用', data: null }),
+    )
+
+    await expect(httpStream('/api/s', { method: 'POST' }, vi.fn())).rejects.toEqual(
+      new ApiError(16004, 'AI 服务暂时不可用', 503),
+    )
+  })
+
+  it('refreshes an expired token and retries once', async () => {
+    fetchMock
+      .mockResolvedValueOnce(expired())
+      .mockResolvedValueOnce(ok({ accessToken: 'token-2' }))
+      .mockResolvedValueOnce(eventStream('data:{"type":"DONE"}\n\n'))
+    const onEvent = vi.fn()
+
+    await httpStream('/api/s', { method: 'POST' }, onEvent)
+
+    expect(onEvent).toHaveBeenCalledWith('{"type":"DONE"}')
+    expect(new Headers(fetchMock.mock.calls[2]?.[1]?.headers).get('Authorization')).toBe(
+      'Bearer token-2',
+    )
   })
 })

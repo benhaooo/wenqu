@@ -42,6 +42,8 @@ make check         # 全部检查：格式、lint、类型、架构测试、单�
 make fmt           # 自动格式化
 make api           # 导出 openapi.json 并生成前端接口代码
 make db-reset      # 重置本地数据库
+make demo          # 创建演示账号并导入示例文档（需要后端运行中）
+make evaluate      # 检索评测，输出的表格用于更新 docs/evaluation.md
 ```
 
 后端编译依赖 Docker（jOOQ 代码生成和集成测试使用 Testcontainers）。

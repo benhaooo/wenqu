@@ -35,7 +35,18 @@ public enum ErrorCode {
     INVALID_CONTENT(13007, HttpStatus.BAD_REQUEST, "文档内容格式不正确"),
     CONTENT_TOO_LARGE(13008, HttpStatus.CONTENT_TOO_LARGE, "文档内容过大"),
     UNSUPPORTED_IMAGE_TYPE(13009, HttpStatus.UNSUPPORTED_MEDIA_TYPE, "只支持 PNG、JPEG、GIF、WebP 图片"),
-    IMAGE_NOT_FOUND(13011, HttpStatus.NOT_FOUND, "图片不存在");
+    IMAGE_NOT_FOUND(13011, HttpStatus.NOT_FOUND, "图片不存在"),
+
+    UNSUPPORTED_IMPORT_TYPE(14001, HttpStatus.UNSUPPORTED_MEDIA_TYPE, "只支持 PDF、Word、Markdown 和纯文本文件"),
+    INGEST_JOB_NOT_FOUND(14002, HttpStatus.NOT_FOUND, "导入任务不存在"),
+    INGEST_JOB_NOT_RETRYABLE(14003, HttpStatus.CONFLICT, "只有失败的任务可以重试"),
+    SOURCE_FILE_NOT_FOUND(14004, HttpStatus.NOT_FOUND, "该文档不是导入的文件"),
+
+    CONVERSATION_NOT_FOUND(16001, HttpStatus.NOT_FOUND, "会话不存在"),
+    MESSAGE_NOT_FOUND(16002, HttpStatus.NOT_FOUND, "回答不存在"),
+    INVALID_SCOPE(16003, HttpStatus.BAD_REQUEST, "提问范围中的文件夹或文档不存在"),
+    AI_UNAVAILABLE(16004, HttpStatus.SERVICE_UNAVAILABLE, "AI 服务暂时不可用，请稍后再试"),
+    NOTHING_TO_REGENERATE(16005, HttpStatus.CONFLICT, "会话中还没有问题");
 
     private final int code;
     private final HttpStatus httpStatus;

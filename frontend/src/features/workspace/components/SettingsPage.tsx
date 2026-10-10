@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { useCurrentWorkspace } from '../hooks/useCurrentWorkspace'
 import { GeneralSettings } from './GeneralSettings'
@@ -12,8 +12,8 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'general', label: '通用' },
 ]
 
-/** 空间设置：成员与邀请、空间名称。 */
-export function SettingsPage() {
+/** 空间设置：成员与邀请、空间名称。通用设置中其他模块的设置项（如重新索引）由应用层通过 generalSections 传入。 */
+export function SettingsPage({ generalSections }: { generalSections?: ReactNode }) {
   const { data: workspace } = useCurrentWorkspace()
   const [tab, setTab] = useState<Tab>('members')
 
@@ -53,7 +53,10 @@ export function SettingsPage() {
           <MemberTable workspaceId={workspace.id} />
         </>
       ) : (
-        <GeneralSettings workspace={workspace} editable={isAdmin} />
+        <>
+          <GeneralSettings workspace={workspace} editable={isAdmin} />
+          {generalSections}
+        </>
       )}
     </div>
   )

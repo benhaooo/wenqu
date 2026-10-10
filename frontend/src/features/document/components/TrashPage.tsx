@@ -8,7 +8,7 @@ import {
   useRestoreNode,
 } from '@/shared/api/generated/document/document'
 import { Button } from '@/shared/ui/button'
-import { useWorkspaceAccess } from '../hooks/useWorkspaceAccess'
+import { useWorkspaceAccess } from '@/shared/api/useWorkspaceAccess'
 
 const dateFormat = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' })
 

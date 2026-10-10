@@ -11,7 +11,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.rabbitmq.RabbitMQContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/** 集成测试依赖，镜像与 docker-compose.yml 保持一致。 */
+/** 集成测试依赖，镜像与 docker-compose.yml 保持一致；对话与 Embedding 模型替换为本地假实现，不调用外部服务。 */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
@@ -19,6 +19,18 @@ public class TestcontainersConfiguration {
     @Primary
     MutableClock mutableClock() {
         return new MutableClock();
+    }
+
+    @Bean
+    @Primary
+    FakeChatModel fakeChatModel() {
+        return new FakeChatModel();
+    }
+
+    @Bean
+    @Primary
+    FakeEmbeddingModel fakeEmbeddingModel() {
+        return new FakeEmbeddingModel();
     }
 
     @Bean
